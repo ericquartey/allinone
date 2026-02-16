@@ -8,14 +8,17 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardConfig } from '../../features/dashboard/context/DashboardConfigContext';
 import Button from '../../components/shared/Button';
 import Badge from '../../components/shared/Badge';
+import type { WidgetType } from '../../features/dashboard/types/dashboard.types';
 
 /**
  * Dashboard Settings Page - Configurazione widget
  */
 const DashboardSettingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { config, updateConfig, toggleWidget, resetConfig } = useDashboardConfig();
+  const { config, updateConfig, toggleWidget, reorderWidgets, resetConfig } = useDashboardConfig();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const sortedWidgets = [...config.widgets].sort((a, b) => a.order - b.order);
 
   /**
    * Handle toggle auto-refresh
@@ -50,7 +53,7 @@ const DashboardSettingsPage: React.FC = () => {
   /**
    * Ottieni icona widget
    */
-  const getWidgetIcon = (widgetId: string) => {
+  const getWidgetIcon = (widgetId: WidgetType) => {
     const iconClass = 'w-6 h-6';
 
     switch (widgetId) {
@@ -115,6 +118,29 @@ const DashboardSettingsPage: React.FC = () => {
   };
 
   const enabledCount = config.widgets.filter((w) => w.enabled).length;
+
+  /**
+   * Sposta widget in alto/basso mantenendo ordine persistente
+   */
+  const handleMoveWidget = (widgetId: WidgetType, direction: 'up' | 'down') => {
+    const currentIndex = sortedWidgets.findIndex((widget) => widget.id === widgetId);
+    if (currentIndex === -1) {
+      return;
+    }
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (targetIndex < 0 || targetIndex >= sortedWidgets.length) {
+      return;
+    }
+
+    const reorderedWidgetIds = sortedWidgets.map((widget) => widget.id);
+    [reorderedWidgetIds[currentIndex], reorderedWidgetIds[targetIndex]] = [
+      reorderedWidgetIds[targetIndex],
+      reorderedWidgetIds[currentIndex],
+    ];
+
+    reorderWidgets(reorderedWidgetIds);
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -237,15 +263,18 @@ const DashboardSettingsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Widget Disponibili</h2>
-          <Badge variant={enabledCount > 0 ? 'success' : 'default'}>
-            {enabledCount} attivi
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={enabledCount > 0 ? 'success' : 'default'}>{enabledCount} attivi</Badge>
+            <Badge variant="default">Ordinabili</Badge>
+          </div>
         </div>
 
+        <p className="text-sm text-gray-600 mb-4">
+          Usa le frecce per modificare l'ordine dei widget. L'ordine viene salvato automaticamente.
+        </p>
+
         <div className="space-y-3">
-          {config.widgets
-            .sort((a, b) => a.order - b.order)
-            .map((widget) => (
+          {sortedWidgets.map((widget, index) => (
               <div
                 key={widget.id}
                 className={`flex items-center justify-between p-4 border-2 rounded-lg transition-all ${
@@ -263,7 +292,10 @@ const DashboardSettingsPage: React.FC = () => {
                     {getWidgetIcon(widget.id)}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{widget.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="default">#{index + 1}</Badge>
+                      <h3 className="font-semibold text-gray-900">{widget.name}</h3>
+                    </div>
                     <p className="text-sm text-gray-600">{widget.description}</p>
                     {widget.refreshInterval && (
                       <p className="text-xs text-gray-500 mt-1">
@@ -273,18 +305,39 @@ const DashboardSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => toggleWidget(widget.id)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    widget.enabled ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      widget.enabled ? 'translate-x-6' : 'translate-x-1'
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => handleMoveWidget(widget.id, 'up')}
+                      disabled={index === 0}
+                      className="w-8 h-8 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Sposta in alto"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => handleMoveWidget(widget.id, 'down')}
+                      disabled={index === sortedWidgets.length - 1}
+                      className="w-8 h-8 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Sposta in basso"
+                    >
+                      ↓
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => toggleWidget(widget.id)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      widget.enabled ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        widget.enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
             ))}
         </div>
