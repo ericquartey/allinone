@@ -9,7 +9,7 @@ const router = express.Router();
 
 // Menu completo con tutte le voci
 const FULL_MENU = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', path: '/', order: 1, visible: true },
+  { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', path: '/dashboard', order: 1, visible: true },
   { id: 'lists', label: 'Liste', icon: 'List', path: '/lists-management', order: 2, visible: true },
   { id: 'operazioni', label: 'OPERAZIONI', icon: '', path: '', order: 3, visible: true },
   { id: 'stock', label: 'Stock', icon: 'Inventory', path: '/stock', order: 4, visible: true },

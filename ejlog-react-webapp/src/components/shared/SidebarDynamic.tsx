@@ -5,7 +5,7 @@ import * as Icons from '@mui/icons-material';
 
 // Default menu se backend non disponibile
 const DEFAULT_MENU = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', path: '/', order: 1 },
+  { id: 'dashboard', label: 'Dashboard', icon: 'Dashboard', path: '/dashboard', order: 1 },
   { id: 'lists', label: 'Liste', icon: 'List', path: '/lists-management', order: 2 },
   { id: 'stock', label: 'Stock', icon: 'Inventory', path: '/stock', order: 3 },
   { id: 'movements', label: 'Movimenti', icon: 'SwapHoriz', path: '/movements', order: 4 },
