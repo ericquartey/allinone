@@ -1,0 +1,622 @@
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
+import {
+  CubeIcon,
+  DocumentTextIcon,
+  ChartBarIcon,
+  ClockIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+  MagnifyingGlassIcon,
+  DocumentArrowDownIcon,
+} from '@heroicons/react/24/outline';
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import Loading from '../components/common/Loading';
+import Modal from '../components/common/Modal';
+import { useItems } from '../hooks/useItems';
+import { useLists } from '../hooks/useLists';
+import { useStock } from '../hooks/useStock';
+
+// KPI colors for different list types
+const LIST_TYPE_COLORS = {
+  picking: '#E30613',     // Ferretto Red
+  refilling: '#10B981',   // Green
+  inventory: '#3B82F6',   // Blue
+};
+
+function StatCard({  title, value, icon: Icon, trend, trendValue, color, loading = false  }: any): JSX.Element {
+  const isPositive = trend === 'up';
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          {loading ? (
+            <div className="h-9 w-24 bg-gray-200 animate-pulse rounded"></div>
+          ) : (
+            <p className="text-3xl font-bold text-gray-900">{value}</p>
+          )}
+          {trend && !loading && (
+            <div
+              className={`flex items-center mt-2 text-sm ${
+                isPositive ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {isPositive ? (
+                <ArrowUpIcon className="w-4 h-4 mr-1" />
+              ) : (
+                <ArrowDownIcon className="w-4 h-4 mr-1" />
+              )}
+              <span className="font-medium">{trendValue}</span>
+              <span className="text-gray-500 ml-1">vs scorsa settimana</span>
+            </div>
+          )}
+        </div>
+        <div
+          className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}
+        >
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function Dashboard(): JSX.Element {
+  const [dateRange, setDateRange] = useState('7d');
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [showNewListModal, setShowNewListModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Get current user from Redux store
+  const currentUser = useSelector((state: any) => state.auth?.user);
+
+  // Fetch data with auto-refresh
+  const { data: itemsData, isLoading: itemsLoading } = useQuery({
+    queryKey: ['items-count', refreshKey],
+    queryFn: async () => {
+      const response = await fetch('/EjLogHostVertimag/Items?skip=0&take=1');
+      return response.json();
+    },
+    staleTime: 30000, // 30s
+  });
+
+  const { data: listsData, isLoading: listsLoading } = useQuery({
+    queryKey: ['lists-all', refreshKey],
+    queryFn: async () => {
+      const response = await fetch('/EjLogHostVertimag/Lists?skip=0&take=100');
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+
+  const { data: stockData, isLoading: stockLoading } = useQuery({
+    queryKey: ['stock-count', refreshKey],
+    queryFn: async () => {
+      const response = await fetch('/EjLogHostVertimag/Stock?skip=0&take=100&showOnlyPositive=true');
+      return response.json();
+    },
+    staleTime: 30000,
+  });
+
+  // Fetch user-specific statistics
+  const { data: userStatsData, isLoading: userStatsLoading } = useQuery({
+    queryKey: ['user-stats', currentUser?.userId, refreshKey],
+    queryFn: async () => {
+      if (!currentUser?.userId) return null;
+      const response = await fetch(`/api/user-stats/${currentUser.userId}`);
+      return response.json();
+    },
+    enabled: !!currentUser?.userId,
+    staleTime: 30000,
+  });
+
+  // TODO: Backend endpoints needed (document if not available)
+  // GET /api/item-lists/count?type=0&status=1 (picking)
+  // GET /api/item-lists/count?type=1&status=1 (refilling)
+  // GET /api/item-lists/count?type=2&status=1 (inventory)
+
+  // For now, calculate from lists data
+  const listsByType = useMemo(() => {
+    if (!listsData?.exported) return { picking: 0, refilling: 0, inventory: 0 };
+
+    const lists = listsData.exported;
+    return {
+      picking: lists.filter(l => l.listType === 0).length,
+      refilling: lists.filter(l => l.listType === 1).length,
+      inventory: lists.filter(l => l.listType === 2).length,
+    };
+  }, [listsData]);
+
+  // Calculate stats from real data
+  const stats = useMemo(() => {
+    const totalItems = itemsData?.recordNumber || 0;
+    const totalLists = listsData?.recordNumber || 0;
+    const stock = stockData?.exported || [];
+
+    // Calculate stock metrics
+    const lowStockItems = stock.filter(
+      (item) => (item.stockedQuantity || 0) < (item.minimumStockQuantity || 10) && item.stockedQuantity > 0
+    ).length;
+
+    return {
+      totalItems,
+      totalLists,
+      pickingLists: listsByType.picking,
+      refillingLists: listsByType.refilling,
+      inventoryLists: listsByType.inventory,
+      lowStockItems,
+      totalStockItems: stockData?.recordNumber || 0,
+    };
+  }, [itemsData, listsData, stockData, listsByType]);
+
+  // Calculate category distribution from stock data
+  const categoryData = useMemo(() => {
+    if (!stockData?.exported) return [];
+
+    const catMap = {};
+    stockData.exported.forEach(item => {
+      const cat = item.item?.categoriaDesc || 'Altro';
+      catMap[cat] = (catMap[cat] || 0) + (item.stockedQuantity || 0);
+    });
+
+    return Object.entries(catMap)
+      .map(([category, quantity]) => ({
+        category,
+        quantity,
+        percentage: 0, // Calculate after we have total
+      }))
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5); // Top 5 categories
+  }, [stockData]);
+
+  // Lists by type data for pie chart
+  const listsTypeData = useMemo(() => [
+    { name: 'Picking', value: listsByType.picking, color: LIST_TYPE_COLORS.picking },
+    { name: 'Refilling', value: listsByType.refilling, color: LIST_TYPE_COLORS.refilling },
+    { name: 'Inventario', value: listsByType.inventory, color: LIST_TYPE_COLORS.inventory },
+  ].filter(item => item.value > 0), [listsByType]);
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      setRefreshKey(prev => prev + 1);
+      console.log('Auto-refresh triggered');
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [autoRefresh]);
+
+  // Manual refresh
+  const handleManualRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  const isLoading = itemsLoading || listsLoading || stockLoading;
+
+  if (isLoading && refreshKey === 0) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loading size="lg" text="Caricamento dashboard dal server..." />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">
+            Panoramica generale del sistema logistico
+          </p>
+          <div className="flex items-center space-x-2 mt-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              Backend Connesso
+            </span>
+            <span className="text-xs text-gray-500">
+              Ultimo aggiornamento: {new Date().toLocaleTimeString('it-IT')}
+            </span>
+            {autoRefresh && (
+              <span className="text-xs text-gray-500">
+                - Auto-refresh: 30s
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            loading={isLoading}
+          >
+            Aggiorna
+          </Button>
+          <Button
+            variant={autoRefresh ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+          >
+            {autoRefresh ? 'Pausa' : 'Auto'}
+          </Button>
+          <Button variant="primary">
+            <DocumentArrowDownIcon className="w-5 h-5 mr-2" />
+            Esporta Report
+          </Button>
+        </div>
+      </div>
+
+      {/* User Welcome Card */}
+      {currentUser && userStatsData?.success && (
+        <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">
+                  Benvenuto, {userStatsData.userInfo?.displayName || currentUser.displayName}!
+                </h2>
+                <p className="text-indigo-100 mb-4">
+                  Ultimo accesso: {new Date(userStatsData.userInfo?.lastLoginDate).toLocaleDateString('it-IT')}
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {(userStatsData.userInfo?.roles || currentUser.roles || []).map((role: string, idx: number) => (
+                    <span key={idx} className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div>
+                  <div className="text-3xl font-bold">{userStatsData.stats?.lists?.totalLists || 0}</div>
+                  <div className="text-sm text-indigo-100">Liste Totali</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold">{userStatsData.stats?.lists?.completedLists || 0}</div>
+                  <div className="text-sm text-indigo-100">Completate</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold">{userStatsData.stats?.lists?.inProgressLists || 0}</div>
+                  <div className="text-sm text-indigo-100">In Corso</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Stats Cards - Row 1: General */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+          Metriche Generali
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Articoli Totali"
+            value={stats.totalItems.toLocaleString()}
+            icon={CubeIcon}
+            color="bg-gradient-to-br from-blue-500 to-blue-600"
+            loading={itemsLoading}
+          />
+          <StatCard
+            title="Liste Totali"
+            value={stats.totalLists.toLocaleString()}
+            icon={DocumentTextIcon}
+            color="bg-gradient-to-br from-purple-500 to-purple-600"
+            loading={listsLoading}
+          />
+          <StatCard
+            title="Giacenze Totali"
+            value={stats.totalStockItems.toLocaleString()}
+            icon={ChartBarIcon}
+            color="bg-gradient-to-br from-green-500 to-green-600"
+            loading={stockLoading}
+          />
+          <StatCard
+            title="Sotto Soglia"
+            value={stats.lowStockItems}
+            icon={ExclamationTriangleIcon}
+            color="bg-gradient-to-br from-orange-500 to-orange-600"
+            loading={stockLoading}
+          />
+        </div>
+      </div>
+
+      {/* Stats Cards - Row 2: Lists by Type */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+          Liste per Tipo
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard
+            title="Liste Picking"
+            value={stats.pickingLists}
+            icon={DocumentTextIcon}
+            color="bg-gradient-to-br from-ferretto-red to-red-600"
+            loading={listsLoading}
+          />
+          <StatCard
+            title="Liste Refilling"
+            value={stats.refillingLists}
+            icon={DocumentTextIcon}
+            color="bg-gradient-to-br from-green-500 to-green-600"
+            loading={listsLoading}
+          />
+          <StatCard
+            title="Liste Inventario"
+            value={stats.inventoryLists}
+            icon={DocumentTextIcon}
+            color="bg-gradient-to-br from-blue-500 to-blue-600"
+            loading={listsLoading}
+          />
+        </div>
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Bar Chart - Giacenze per Categoria */}
+        {categoryData.length > 0 && (
+          <Card>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Distribuzione Giacenze per Categoria (Top 5)
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={categoryData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="category"
+                  stroke="#6b7280"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                />
+                <YAxis stroke="#6b7280" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Bar
+                  dataKey="quantity"
+                  fill="#E30613"
+                  radius={[8, 8, 0, 0]}
+                  name="Quantità"
+                  animationDuration={1000}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        )}
+
+        {/* Pie Chart - Liste per Tipo */}
+        {listsTypeData.length > 0 && (
+          <Card>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Liste per Tipo
+            </h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={listsTypeData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={(entry) => `${entry.name}: ${entry.value}`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  animationDuration={1000}
+                >
+                  {listsTypeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Azioni Rapide
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Button
+            variant="outline"
+            className="h-24 flex-col"
+            onClick={() => setShowNewListModal(true)}
+          >
+            <PlusIcon className="w-8 h-8 mb-2" />
+            <span>Nuova Lista</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col"
+            onClick={() => window.location.href = '/items'}
+          >
+            <CubeIcon className="w-8 h-8 mb-2" />
+            <span>Gestione Articoli</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col"
+            onClick={() => window.location.href = '/stock'}
+          >
+            <ChartBarIcon className="w-8 h-8 mb-2" />
+            <span>Report Giacenze</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-24 flex-col"
+            onClick={() => window.location.href = '/movements'}
+          >
+            <MagnifyingGlassIcon className="w-8 h-8 mb-2" />
+            <span>Ricerca Movimenti</span>
+          </Button>
+        </div>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Attività Recenti
+          </h3>
+          <Button variant="ghost" size="sm" onClick={() => window.location.href = '/movements'}>
+            Vedi tutto
+          </Button>
+        </div>
+        <div className="space-y-3">
+          {/* TODO: Replace with real data from API */}
+          {[
+            {
+              action: 'Lista prelievo LP001 completata',
+              user: 'Mario Rossi',
+              time: '5 minuti fa',
+              type: 'success',
+            },
+            {
+              action: 'Importati 150 nuovi articoli',
+              user: 'Sistema',
+              time: '1 ora fa',
+              type: 'info',
+            },
+            {
+              action: 'Lista versamento LV045 creata',
+              user: 'Lucia Bianchi',
+              time: '2 ore fa',
+              type: 'info',
+            },
+            {
+              action: 'Giacenze aggiornate automaticamente',
+              user: 'Sistema',
+              time: '3 ore fa',
+              type: 'success',
+            },
+          ].map((activity, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 px-2 rounded transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`w-2 h-2 rounded-full ${
+                  activity.type === 'success' ? 'bg-green-500' :
+                  activity.type === 'warning' ? 'bg-orange-500' :
+                  'bg-blue-500'
+                }`}></div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">
+                    {activity.action}
+                  </p>
+                  <p className="text-xs text-gray-500">{activity.user}</p>
+                </div>
+              </div>
+              <span className="text-xs text-gray-400">{activity.time}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* New List Modal */}
+      <Modal
+        isOpen={showNewListModal}
+        onClose={() => setShowNewListModal(false)}
+        title="Crea Nuova Lista"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            Seleziona il tipo di lista da creare:
+          </p>
+          <div className="grid grid-cols-1 gap-3">
+            <Button
+              variant="outline"
+              className="justify-start h-16"
+              onClick={() => {
+                setShowNewListModal(false);
+                window.location.href = '/lists?action=create&type=picking';
+              }}
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-red-100 rounded flex items-center justify-center mr-3">
+                  <DocumentTextIcon className="w-6 h-6 text-ferretto-red" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Lista Picking</p>
+                  <p className="text-xs text-gray-500">Prelievo merce da magazzino</p>
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start h-16"
+              onClick={() => {
+                setShowNewListModal(false);
+                window.location.href = '/lists?action=create&type=refilling';
+              }}
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-green-100 rounded flex items-center justify-center mr-3">
+                  <DocumentTextIcon className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Lista Refilling</p>
+                  <p className="text-xs text-gray-500">Rifornimento ubicazioni</p>
+                </div>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start h-16"
+              onClick={() => {
+                setShowNewListModal(false);
+                window.location.href = '/lists?action=create&type=inventory';
+              }}
+            >
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center mr-3">
+                  <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Lista Inventario</p>
+                  <p className="text-xs text-gray-500">Conteggio giacenze</p>
+                </div>
+              </div>
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+export default Dashboard;

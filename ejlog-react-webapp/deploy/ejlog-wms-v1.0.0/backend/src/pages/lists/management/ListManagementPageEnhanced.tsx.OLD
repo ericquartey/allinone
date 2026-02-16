@@ -1,0 +1,1063 @@
+// ============================================================================
+// EJLOG WMS - Enhanced Lists Management Page
+// Replica della GestioneListePanelNew.java con funzionalità complete CRUD
+// ============================================================================
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import {
+  PlayCircleIcon,
+  PauseCircleIcon,
+  StopCircleIcon,
+  CheckCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  DocumentTextIcon,
+  PrinterIcon,
+  UserPlusIcon,
+  ArrowPathIcon,
+  FunnelIcon,
+  PlusCircleIcon,
+  EyeIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+
+import Card from '../../../components/shared/Card';
+import Button from '../../../components/shared/Button';
+import Table from '../../../components/shared/Table';
+import Badge from '../../../components/shared/Badge';
+import Spinner from '../../../components/shared/Spinner';
+import Modal from '../../../components/shared/Modal';
+
+import * as ListsService from '../../../services/listsService';
+import type {
+  List,
+  ListType,
+  ListStatus,
+  User,
+  Area,
+  Warehouse,
+} from '../../../services/listsService';
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+interface ListFilters {
+  listNumber: string;
+  listType: ListType | 'ALL';
+  listStatus: ListStatus | 'ALL';
+  orderNumber: string;
+  dateFrom: string;
+  dateTo: string;
+  assignedUser: string;
+}
+
+interface ActionMenuItem {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  onClick: (list: List) => void;
+  disabled?: (list: List) => boolean;
+  color?: string;
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+const ListManagementPageEnhanced: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // State
+  const [lists, setLists] = useState<List[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(25);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  // Filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState<ListFilters>({
+    listNumber: searchParams.get('listNumber') || '',
+    listType: (searchParams.get('listType') as ListType) || 'ALL',
+    listStatus: (searchParams.get('listStatus') as ListStatus) || 'ALL',
+    orderNumber: searchParams.get('orderNumber') || '',
+    dateFrom: searchParams.get('dateFrom') || '',
+    dateTo: searchParams.get('dateTo') || '',
+    assignedUser: searchParams.get('assignedUser') || '',
+  });
+
+  // Selection
+  const [selectedLists, setSelectedLists] = useState<string[]>([]);
+  const [selectedList, setSelectedList] = useState<List | null>(null);
+
+  // Modals
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showPriorityModal, setShowPriorityModal] = useState(false);
+
+  // Assignment data
+  const [users, setUsers] = useState<User[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
+
+  // ============================================================================
+  // DATA LOADING
+  // ============================================================================
+
+  const loadLists = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    // ========================================================================
+    // BACKEND REALE SU PORTA 3077 - EjLog MainProgram
+    // NON MODIFICARE - Usare sempre dati reali dal backend
+    // ========================================================================
+    console.log('🔌 [BACKEND REALE] Caricamento liste da http://localhost:3077');
+
+    try {
+      const params: ListsService.GetListsParams = {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+        ...(filters.listNumber && { listNumber: filters.listNumber }),
+        ...(filters.listType !== 'ALL' && { listType: filters.listType }),
+        ...(filters.listStatus !== 'ALL' && { listStatus: filters.listStatus }),
+        ...(filters.orderNumber && { orderNumber: filters.orderNumber }),
+      };
+
+      const response = await ListsService.getLists(params);
+
+      if (response.result === 'OK') {
+        setLists(response.exportedItems || []);
+        setTotalRecords(response.recordNumber || 0);
+      } else {
+        setError(response.message || 'Errore nel caricamento liste');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore di connessione al server');
+      console.error('Error loading lists:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage, filters]);
+
+  const loadSupportData = useCallback(async () => {
+    try {
+      const [usersData, warehousesData, areasData] = await Promise.all([
+        ListsService.getAvailableUsers('operator'),
+        ListsService.getWarehouses(),
+        ListsService.getAreas(),
+      ]);
+
+      setUsers(usersData);
+      setWarehouses(warehousesData);
+      setAreas(areasData);
+    } catch (err) {
+      console.error('Error loading support data:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadLists();
+    loadSupportData();
+  }, [loadLists, loadSupportData]);
+
+  // ============================================================================
+  // ACTIONS - Replicate Java functionality
+  // ============================================================================
+
+  // Azione: Aggiorna (F5)
+  const handleRefresh = useCallback(() => {
+    loadLists();
+    toast.success('Liste aggiornate');
+  }, [loadLists]);
+
+  // Azione: Pulisci filtri (F6)
+  const handleClearFilters = useCallback(() => {
+    setFilters({
+      listNumber: '',
+      listType: 'ALL',
+      listStatus: 'ALL',
+      orderNumber: '',
+      dateFrom: '',
+      dateTo: '',
+      assignedUser: '',
+    });
+    setSearchParams(new URLSearchParams());
+    setPage(0);
+    toast.success('Filtri puliti');
+  }, [setSearchParams]);
+
+  // Azione: Inserisci nuova lista
+  const handleInsert = useCallback(() => {
+    setShowCreateModal(true);
+  }, []);
+
+  // Azione: Modifica lista
+  const handleEdit = useCallback((list: List) => {
+    if (list.listHeader.listStatus === ListsService.ListStatus.COMPLETED) {
+      toast.error('Impossibile modificare una lista completata');
+      return;
+    }
+    setSelectedList(list);
+    setShowEditModal(true);
+  }, []);
+
+  // Azione: Esegui lista
+  const handleExecute = useCallback(async (list: List) => {
+    if (list.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS) {
+      toast.error('La lista è già in esecuzione');
+      return;
+    }
+
+    try {
+      const response = await ListsService.updateList({
+        listNumber: list.listHeader.listNumber,
+        listStatus: ListsService.ListStatus.IN_PROGRESS,
+      });
+
+      if (response.result === 'OK') {
+        toast.success(`Lista ${list.listHeader.listNumber} avviata`);
+        loadLists();
+      } else {
+        toast.error(response.message || 'Errore nell\'avvio della lista');
+      }
+    } catch (err) {
+      toast.error('Errore nell\'avvio della lista');
+      console.error('Error executing list:', err);
+    }
+  }, [loadLists]);
+
+  // Azione: Pausa lista
+  const handlePause = useCallback(async (list: List) => {
+    if (list.listHeader.listStatus !== ListsService.ListStatus.IN_PROGRESS) {
+      toast.error('La lista non è in esecuzione');
+      return;
+    }
+
+    try {
+      const response = await ListsService.updateList({
+        listNumber: list.listHeader.listNumber,
+        listStatus: ListsService.ListStatus.WAITING,
+      });
+
+      if (response.result === 'OK') {
+        toast.success(`Lista ${list.listHeader.listNumber} messa in pausa`);
+        loadLists();
+      } else {
+        toast.error(response.message || 'Errore nella pausa della lista');
+      }
+    } catch (err) {
+      toast.error('Errore nella pausa della lista');
+      console.error('Error pausing list:', err);
+    }
+  }, [loadLists]);
+
+  // Azione: Termina lista
+  const handleTerminate = useCallback(async (list: List) => {
+    const confirmed = confirm(
+      `Confermi di voler terminare la lista ${list.listHeader.listNumber}?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await ListsService.updateList({
+        listNumber: list.listHeader.listNumber,
+        listStatus: ListsService.ListStatus.COMPLETED,
+      });
+
+      if (response.result === 'OK') {
+        toast.success(`Lista ${list.listHeader.listNumber} terminata`);
+        loadLists();
+      } else {
+        toast.error(response.message || 'Errore nella terminazione della lista');
+      }
+    } catch (err) {
+      toast.error('Errore nella terminazione della lista');
+      console.error('Error terminating list:', err);
+    }
+  }, [loadLists]);
+
+  // Azione: Elimina lista
+  const handleDelete = useCallback(async (list: List) => {
+    if (list.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS) {
+      toast.error('Impossibile eliminare una lista in esecuzione');
+      return;
+    }
+
+    const confirmed = confirm(
+      `Confermi l'eliminazione della lista "${list.listHeader.listNumber}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await ListsService.deleteList(list.listHeader.listNumber);
+
+      if (response.result === 'OK') {
+        toast.success('Lista eliminata con successo');
+        loadLists();
+      } else {
+        toast.error(response.message || "Errore nell'eliminazione lista");
+      }
+    } catch (err) {
+      toast.error('Errore nell\'eliminazione della lista');
+      console.error('Error deleting list:', err);
+    }
+  }, [loadLists]);
+
+  // Azione: Cambia priorità
+  const handleChangePriority = useCallback((list: List) => {
+    setSelectedList(list);
+    setShowPriorityModal(true);
+  }, []);
+
+  // Azione: Anticipa (incrementa priorità)
+  const handleMoveUp = useCallback(async (list: List) => {
+    const newPriority = (list.listHeader.priority || 50) + 10;
+
+    try {
+      const response = await ListsService.updateList({
+        listNumber: list.listHeader.listNumber,
+        priority: newPriority,
+      });
+
+      if (response.result === 'OK') {
+        toast.success(`Priorità aumentata a ${newPriority}`);
+        loadLists();
+      } else {
+        toast.error(response.message || 'Errore nell\'aggiornamento priorità');
+      }
+    } catch (err) {
+      toast.error('Errore nell\'aggiornamento priorità');
+    }
+  }, [loadLists]);
+
+  // Azione: Posticipa (decrementa priorità)
+  const handleMoveDown = useCallback(async (list: List) => {
+    const newPriority = Math.max(0, (list.listHeader.priority || 50) - 10);
+
+    try {
+      const response = await ListsService.updateList({
+        listNumber: list.listHeader.listNumber,
+        priority: newPriority,
+      });
+
+      if (response.result === 'OK') {
+        toast.success(`Priorità diminuita a ${newPriority}`);
+        loadLists();
+      } else {
+        toast.error(response.message || 'Errore nell\'aggiornamento priorità');
+      }
+    } catch (err) {
+      toast.error('Errore nell\'aggiornamento priorità');
+    }
+  }, [loadLists]);
+
+  // Azione: Assegna operatore
+  const handleAssignOperator = useCallback((list: List) => {
+    setSelectedList(list);
+    setShowAssignModal(true);
+  }, []);
+
+  // Azione: Visualizza dettagli
+  const handleViewDetails = useCallback((list: List) => {
+    setSelectedList(list);
+    setShowDetailModal(true);
+  }, []);
+
+  // Azione: Stampa lista
+  const handlePrint = useCallback((list: List) => {
+    toast.info(`Stampa lista ${list.listHeader.listNumber} - In fase di implementazione`);
+    // TODO: Implementare generazione PDF
+  }, []);
+
+  // Azione: Visualizza log
+  const handleViewLog = useCallback((list: List) => {
+    navigate(`/lists/${list.listHeader.listNumber}/log`);
+  }, [navigate]);
+
+  // ============================================================================
+  // MENU AZIONI - Replica pannello laterale Java
+  // ============================================================================
+
+  const actionMenuItems: ActionMenuItem[] = useMemo(() => [
+    // Ricerca
+    {
+      id: 'refresh',
+      label: 'Aggiorna (F5)',
+      icon: <ArrowPathIcon className="w-5 h-5" />,
+      onClick: handleRefresh,
+    },
+    {
+      id: 'clearFilters',
+      label: 'Pulisci Filtri (F6)',
+      icon: <XMarkIcon className="w-5 h-5" />,
+      onClick: handleClearFilters,
+    },
+
+    // Gestione
+    {
+      id: 'insert',
+      label: 'Inserisci',
+      icon: <PlusCircleIcon className="w-5 h-5" />,
+      onClick: handleInsert,
+      color: 'text-green-600',
+    },
+    {
+      id: 'edit',
+      label: 'Modifica',
+      icon: <PencilSquareIcon className="w-5 h-5" />,
+      onClick: handleEdit,
+      disabled: (list) => list.listHeader.listStatus === ListsService.ListStatus.COMPLETED,
+      color: 'text-blue-600',
+    },
+
+    // Gestione Stato
+    {
+      id: 'execute',
+      label: 'Esegui',
+      icon: <PlayCircleIcon className="w-5 h-5" />,
+      onClick: handleExecute,
+      disabled: (list) => list.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS,
+      color: 'text-green-600',
+    },
+    {
+      id: 'pause',
+      label: 'Attesa',
+      icon: <PauseCircleIcon className="w-5 h-5" />,
+      onClick: handlePause,
+      disabled: (list) => list.listHeader.listStatus !== ListsService.ListStatus.IN_PROGRESS,
+      color: 'text-yellow-600',
+    },
+    {
+      id: 'terminate',
+      label: 'Termina',
+      icon: <StopCircleIcon className="w-5 h-5" />,
+      onClick: handleTerminate,
+      color: 'text-purple-600',
+    },
+
+    // Modifica
+    {
+      id: 'priority',
+      label: 'Priorità',
+      icon: <CheckCircleIcon className="w-5 h-5" />,
+      onClick: handleChangePriority,
+      color: 'text-orange-600',
+    },
+    {
+      id: 'moveUp',
+      label: 'Anticipa',
+      icon: <ArrowUpIcon className="w-5 h-5" />,
+      onClick: handleMoveUp,
+      color: 'text-blue-600',
+    },
+    {
+      id: 'moveDown',
+      label: 'Posticipa',
+      icon: <ArrowDownIcon className="w-5 h-5" />,
+      onClick: handleMoveDown,
+      color: 'text-gray-600',
+    },
+    {
+      id: 'assign',
+      label: 'Assegna Operatore',
+      icon: <UserPlusIcon className="w-5 h-5" />,
+      onClick: handleAssignOperator,
+      color: 'text-indigo-600',
+    },
+
+    // Stampa
+    {
+      id: 'print',
+      label: 'Stampa',
+      icon: <PrinterIcon className="w-5 h-5" />,
+      onClick: handlePrint,
+      color: 'text-gray-700',
+    },
+    {
+      id: 'log',
+      label: 'Log',
+      icon: <DocumentTextIcon className="w-5 h-5" />,
+      onClick: handleViewLog,
+      color: 'text-gray-700',
+    },
+  ], [
+    handleRefresh,
+    handleClearFilters,
+    handleInsert,
+    handleEdit,
+    handleExecute,
+    handlePause,
+    handleTerminate,
+    handleChangePriority,
+    handleMoveUp,
+    handleMoveDown,
+    handleAssignOperator,
+    handlePrint,
+    handleViewLog,
+  ]);
+
+  // ============================================================================
+  // RENDER HELPERS
+  // ============================================================================
+
+  const getListTypeLabel = useCallback((type: ListType): string => {
+    return ListsService.getListTypeLabel(type);
+  }, []);
+
+  const getListStatusBadge = useCallback((status: ListStatus) => {
+    switch (status) {
+      case ListsService.ListStatus.WAITING:
+        return <Badge variant="secondary">In Attesa</Badge>;
+      case ListsService.ListStatus.IN_PROGRESS:
+        return <Badge variant="info">In Esecuzione</Badge>;
+      case ListsService.ListStatus.COMPLETED:
+        return <Badge variant="success">Completata</Badge>;
+      default:
+        return <Badge variant="secondary">Sconosciuto</Badge>;
+    }
+  }, []);
+
+  const calculateProgress = useCallback((list: List): number => {
+    return ListsService.calculateListProgress(list.listRows);
+  }, []);
+
+  // Statistics
+  const stats = useMemo(() => {
+    return {
+      total: lists.length,
+      picking: lists.filter(l => l.listHeader.listType === ListsService.ListType.PICKING).length,
+      refilling: lists.filter(l => l.listHeader.listType === ListsService.ListType.REFILLING).length,
+      inventory: lists.filter(l => l.listHeader.listType === ListsService.ListType.INVENTORY).length,
+      waiting: lists.filter(l => l.listHeader.listStatus === ListsService.ListStatus.WAITING).length,
+      inProgress: lists.filter(l => l.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS).length,
+      completed: lists.filter(l => l.listHeader.listStatus === ListsService.ListStatus.COMPLETED).length,
+    };
+  }, [lists]);
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
+  if (loading && lists.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen">
+      {/* LEFT SIDEBAR - Pannello Azioni (replica Java TaskPane) */}
+      <div className="w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto">
+        <div className="p-4 space-y-2">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Azioni</h2>
+
+          {/* Gruppo: Ricerca */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Ricerca
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={handleRefresh}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <ArrowPathIcon className="w-4 h-4 mr-2" />
+                Aggiorna (F5)
+              </button>
+              <button
+                onClick={handleClearFilters}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <XMarkIcon className="w-4 h-4 mr-2" />
+                Pulisci (F6)
+              </button>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              >
+                <FunnelIcon className="w-4 h-4 mr-2" />
+                Filtri
+              </button>
+            </div>
+          </div>
+
+          {/* Gruppo: Gestione */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Gestione
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={handleInsert}
+                className="w-full flex items-center px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded transition-colors"
+              >
+                <PlusCircleIcon className="w-4 h-4 mr-2" />
+                Inserisci
+              </button>
+              <button
+                onClick={() => selectedList && handleEdit(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PencilSquareIcon className="w-4 h-4 mr-2" />
+                Modifica
+              </button>
+            </div>
+          </div>
+
+          {/* Gruppo: Gestione Stato */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Gestione Stato
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => selectedList && handleExecute(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded transition-colors disabled:opacity-50"
+              >
+                <PlayCircleIcon className="w-4 h-4 mr-2" />
+                Esegui
+              </button>
+              <button
+                onClick={() => selectedList && handlePause(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-yellow-700 hover:bg-yellow-50 rounded transition-colors disabled:opacity-50"
+              >
+                <PauseCircleIcon className="w-4 h-4 mr-2" />
+                Attesa
+              </button>
+              <button
+                onClick={() => selectedList && handleTerminate(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded transition-colors disabled:opacity-50"
+              >
+                <StopCircleIcon className="w-4 h-4 mr-2" />
+                Termina
+              </button>
+            </div>
+          </div>
+
+          {/* Gruppo: Modifica */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Modifica
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => selectedList && handleChangePriority(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-orange-700 hover:bg-orange-50 rounded transition-colors disabled:opacity-50"
+              >
+                <CheckCircleIcon className="w-4 h-4 mr-2" />
+                Priorità
+              </button>
+              <button
+                onClick={() => selectedList && handleMoveUp(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded transition-colors disabled:opacity-50"
+              >
+                <ArrowUpIcon className="w-4 h-4 mr-2" />
+                Anticipa
+              </button>
+              <button
+                onClick={() => selectedList && handleMoveDown(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors disabled:opacity-50"
+              >
+                <ArrowDownIcon className="w-4 h-4 mr-2" />
+                Posticipa
+              </button>
+              <button
+                onClick={() => selectedList && handleAssignOperator(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-indigo-700 hover:bg-indigo-50 rounded transition-colors disabled:opacity-50"
+              >
+                <UserPlusIcon className="w-4 h-4 mr-2" />
+                Assegna
+              </button>
+            </div>
+          </div>
+
+          {/* Gruppo: Stampa */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Stampa
+            </h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => selectedList && handlePrint(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors disabled:opacity-50"
+              >
+                <PrinterIcon className="w-4 h-4 mr-2" />
+                Stampa
+              </button>
+              <button
+                onClick={() => selectedList && handleViewLog(selectedList)}
+                disabled={!selectedList}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded transition-colors disabled:opacity-50"
+              >
+                <DocumentTextIcon className="w-4 h-4 mr-2" />
+                Log
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Gestione Liste</h1>
+              <p className="text-gray-600 mt-1">
+                {totalRecords} liste trovate
+              </p>
+            </div>
+          </div>
+
+          {/* Error Alert */}
+          {error && (
+            <Card className="bg-red-50 border-l-4 border-red-500">
+              <div className="flex items-center justify-between">
+                <p className="text-red-600">{error}</p>
+                <Button size="sm" variant="ghost" onClick={() => setError(null)}>
+                  Chiudi
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-7 gap-4">
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Totale</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Picking</p>
+                <p className="text-2xl font-bold text-green-600">{stats.picking}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Rifornim.</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.refilling}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Inventar.</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.inventory}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Attesa</p>
+                <p className="text-2xl font-bold text-gray-600">{stats.waiting}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">In Corso</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
+              </div>
+            </Card>
+            <Card>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Complet.</p>
+                <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+              </div>
+            </Card>
+          </div>
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <Card>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Numero Lista
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Cerca numero lista"
+                    value={filters.listNumber}
+                    onChange={(e) => setFilters({ ...filters, listNumber: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo Lista
+                  </label>
+                  <select
+                    value={filters.listType}
+                    onChange={(e) => setFilters({ ...filters, listType: e.target.value as ListType | 'ALL' })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">Tutti i tipi</option>
+                    <option value={ListsService.ListType.PICKING}>Picking</option>
+                    <option value={ListsService.ListType.REFILLING}>Rifornimento</option>
+                    <option value={ListsService.ListType.INVENTORY}>Inventario</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Stato
+                  </label>
+                  <select
+                    value={filters.listStatus}
+                    onChange={(e) => setFilters({ ...filters, listStatus: e.target.value as ListStatus | 'ALL' })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">Tutti gli stati</option>
+                    <option value={ListsService.ListStatus.WAITING}>In Attesa</option>
+                    <option value={ListsService.ListStatus.IN_PROGRESS}>In Esecuzione</option>
+                    <option value={ListsService.ListStatus.COMPLETED}>Completata</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Numero Commessa
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Cerca commessa"
+                    value={filters.orderNumber}
+                    onChange={(e) => setFilters({ ...filters, orderNumber: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end gap-2">
+                <Button size="sm" variant="ghost" onClick={handleClearFilters}>
+                  Reset Filtri
+                </Button>
+                <Button size="sm" variant="primary" onClick={loadLists}>
+                  Applica Filtri
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Lists Table */}
+          <Card>
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <Spinner size="lg" />
+              </div>
+            ) : lists.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p className="text-lg">Nessuna lista trovata</p>
+                <p className="text-sm mt-2">Prova a modificare i filtri di ricerca</p>
+              </div>
+            ) : (
+              <Table
+                columns={[
+                  {
+                    key: 'select',
+                    label: '',
+                    render: (row) => (
+                      <input
+                        type="checkbox"
+                        checked={selectedLists.includes(row.listHeader.listNumber)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedLists([...selectedLists, row.listHeader.listNumber]);
+                            setSelectedList(row);
+                          } else {
+                            setSelectedLists(selectedLists.filter(id => id !== row.listHeader.listNumber));
+                            if (selectedList?.listHeader.listNumber === row.listHeader.listNumber) {
+                              setSelectedList(null);
+                            }
+                          }
+                        }}
+                        className="rounded"
+                      />
+                    ),
+                  },
+                  {
+                    key: 'listNumber',
+                    label: 'Numero Lista',
+                    render: (row) => (
+                      <button
+                        className="text-blue-600 hover:underline font-semibold"
+                        onClick={() => {
+                          setSelectedList(row);
+                          handleViewDetails(row);
+                        }}
+                      >
+                        {row.listHeader.listNumber}
+                      </button>
+                    ),
+                  },
+                  {
+                    key: 'description',
+                    label: 'Descrizione',
+                    render: (row) => (
+                      <span className="text-sm">
+                        {row.listHeader.listDescription || '-'}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'type',
+                    label: 'Tipo',
+                    render: (row) => (
+                      <Badge variant="info">
+                        {getListTypeLabel(row.listHeader.listType)}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    key: 'status',
+                    label: 'Stato',
+                    render: (row) => getListStatusBadge(row.listHeader.listStatus),
+                  },
+                  {
+                    key: 'priority',
+                    label: 'Priorità',
+                    render: (row) => (
+                      <span className="font-semibold">
+                        {row.listHeader.priority || 50}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'orderNumber',
+                    label: 'Commessa',
+                    render: (row) => (
+                      row.listHeader.orderNumber ? (
+                        <Badge variant="secondary">{row.listHeader.orderNumber}</Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )
+                    ),
+                  },
+                  {
+                    key: 'rows',
+                    label: 'Righe',
+                    render: (row) => (
+                      <span className="font-semibold">
+                        {row.listRows?.length || 0}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: 'progress',
+                    label: 'Progresso',
+                    render: (row) => {
+                      const progress = calculateProgress(row);
+                      return (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium w-12">{progress.toFixed(0)}%</span>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${progress === 100 ? 'bg-green-600' : 'bg-blue-600'}`}
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    },
+                  },
+                  {
+                    key: 'actions',
+                    label: 'Azioni',
+                    render: (row) => (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleViewDetails(row)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Visualizza"
+                        >
+                          <EyeIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(row)}
+                          className="p-1 text-yellow-600 hover:bg-yellow-50 rounded"
+                          title="Modifica"
+                          disabled={row.listHeader.listStatus === ListsService.ListStatus.COMPLETED}
+                        >
+                          <PencilSquareIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(row)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          title="Elimina"
+                          disabled={row.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS}
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={lists}
+              />
+            )}
+
+            {/* Pagination Info */}
+            {totalRecords > rowsPerPage && (
+              <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+                <div>
+                  Visualizzati {page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, totalRecords)} di {totalRecords}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={page === 0}
+                    onClick={() => setPage(page - 1)}
+                  >
+                    Precedente
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={(page + 1) * rowsPerPage >= totalRecords}
+                    onClick={() => setPage(page + 1)}
+                  >
+                    Successivo
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+
+      {/* TODO: Add modals for create, edit, assign, priority, etc. */}
+    </div>
+  );
+};
+
+export default ListManagementPageEnhanced;
+

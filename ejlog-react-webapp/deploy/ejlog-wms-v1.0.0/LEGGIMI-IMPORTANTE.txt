@@ -1,0 +1,99 @@
+================================================================================
+                    ⚠️  IMPORTANTE - LEGGI PRIMA DI USARE
+================================================================================
+
+🎯 SE IL BROWSER NON CARICA (PAGINA BIANCA)
+================================================================================
+
+USA QUESTO SCRIPT INVECE DELL'ORIGINALE:
+
+   start-production-FIXED.bat
+
+OPPURE:
+
+   start-production-v2.bat
+
+Questi script usano "serve" invece di "http-server" e risolvono il problema
+della pagina bianca nel browser.
+
+
+📋 PROCEDURA CORRETTA
+================================================================================
+
+1. PRIMO AVVIO (una sola volta):
+
+   install.bat
+
+
+2. AVVIO NORMALE:
+
+   start-production-FIXED.bat
+
+   OPPURE (se hai problemi):
+
+   start-production-debug.bat
+
+
+3. ATTENDI:
+
+   - 10 secondi dopo che si aprono le finestre
+   - 15 secondi dopo che si apre il browser
+   - Se vedi pagina bianca, premi F5
+
+
+4. STOP:
+
+   stop-all.bat
+
+
+🔧 SCRIPT DISPONIBILI
+================================================================================
+
+✅ CONSIGLIATI:
+
+   start-production-FIXED.bat    <- USA QUESTO (migliore)
+   start-production-debug.bat    <- Per diagnostica completa
+   start-production-v2.bat       <- Uguale al FIXED
+
+
+⚠️ DEPRECATI:
+
+   start-production.bat          <- VECCHIO (può dare pagina bianca)
+
+
+📖 GUIDE DISPONIBILI
+================================================================================
+
+   QUICK-FIX-BROWSER.md          <- Soluzione rapida pagina bianca
+   TROUBLESHOOTING.md            <- Guida completa problemi
+   LEGGIMI.txt                   <- Istruzioni base
+
+
+🆘 SE HAI PROBLEMI
+================================================================================
+
+1. Leggi: QUICK-FIX-BROWSER.md
+
+2. Usa: start-production-debug.bat
+
+3. Controlla:
+   - File: start-debug.log
+   - Finestra GIALLA (Backend)
+   - Finestra VERDE (Frontend)
+   - Console Browser (F12)
+
+4. Leggi: TROUBLESHOOTING.md
+
+
+✅ VERSIONE AGGIORNATA
+================================================================================
+
+Data fix:     24 Dicembre 2025
+Versione:     1.0.1 (con fix browser)
+Modifiche:    - Sostituito http-server con serve
+              - Aggiunto script debug
+              - Aggiunte guide troubleshooting
+
+
+🎁 BUON LAVORO CON EJLOG WMS!
+================================================================================

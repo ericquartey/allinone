@@ -1,0 +1,415 @@
+// src/pages/ListsManagementComplete.jsx
+
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLists } from '../hooks/useLists';
+import { useListOperations } from '../hooks/useListOperations';
+import { ListsSidebar } from '../components/lists/ListsSidebar';
+import { ListsFiltersBar } from '../components/lists/ListsFiltersBar';
+import { ListsStatusBar } from '../components/lists/ListsStatusBar';
+import { ListsTable } from '../components/lists/ListsTable';
+import { ListsBottomTabs } from '../components/lists/ListsBottomTabs';
+import { CreateListModal } from '../components/lists/CreateListModal';
+import { EditListModal } from '../components/lists/EditListModal';
+import { ListType, ListStatus } from '../types/lists';
+import toast from 'react-hot-toast';
+
+/**
+ * COMPLETE Lists Management Page
+ * Replicates 100% of Swing UI functionality
+ *
+ * Layout:
+ * - LEFT: Sidebar with operation buttons (TaskPane style)
+ * - CENTER: Filters, Status Icons, Lists Table
+ * - BOTTOM: Tabs for detailed information
+ */
+export default function ListsManagementComplete() {
+  const navigate = useNavigate();
+
+  // State management
+  const [selectedList, setSelectedList] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showAll, setShowAll] = useState(true);
+
+  // Filters state
+  const [filters, setFilters] = useState({
+    genericHeaderSearch: '',
+    genericRowSearch: '',
+    creationDate: '',
+    completionDate: '',
+    rowsView: '',
+    code: '',
+    listId: ''
+  });
+
+  // Build list filters for API
+  const listFilters = useMemo(() => ({
+    listNumber: filters.listId || filters.code || undefined,
+    limit: 100
+  }), [filters]);
+
+  // Fetch lists with filters
+  const { lists, loading: listsLoading, error: listsError, fetchLists } = useLists(listFilters);
+
+  // List operations hook
+  const {
+    loading: operationLoading,
+    executeList,
+    setListWaiting,
+    terminateList,
+    setListUnprocessable,
+    reserveList,
+    rereserveList,
+    enablePTL,
+    disablePTL,
+    resetPTL,
+    resendPTL
+  } = useListOperations();
+
+  // Calculate status counts
+  const statusCounts = useMemo(() => {
+    const counts = {
+      picking: 0,
+      refilling: 0,
+      vision: 0,
+      inventory: 0,
+      waiting: 0
+    };
+
+    lists.forEach(listExport => {
+      const list = listExport.listHeader;
+
+      // Count by type
+      if (list.listType === ListType.PICKING) counts.picking++;
+      else if (list.listType === ListType.REFILLING) counts.refilling++;
+      else if (list.listType === ListType.INVENTORY) {
+        counts.inventory++;
+        counts.vision++; // Vision is also inventory
+      }
+
+      // Count waiting status
+      if (list.listStatus === ListStatus.WAITING) counts.waiting++;
+    });
+
+    return counts;
+  }, [lists]);
+
+  // ========== SIDEBAR HANDLERS ==========
+
+  const handleRefresh = useCallback(async () => {
+    toast.loading('Aggiornamento in corso...', { id: 'refresh' });
+    await fetchLists();
+    toast.success('Liste aggiornate', { id: 'refresh' });
+  }, [fetchLists]);
+
+  const handleClear = useCallback(() => {
+    setFilters({
+      genericHeaderSearch: '',
+      genericRowSearch: '',
+      creationDate: '',
+      completionDate: '',
+      rowsView: '',
+      code: '',
+      listId: ''
+    });
+    setSelectedList(null);
+    toast.success('Filtri puliti');
+  }, []);
+
+  const handleInsert = useCallback(() => {
+    setIsCreateModalOpen(true);
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di modificarla');
+      return;
+    }
+    setIsEditModalOpen(true);
+  }, [selectedList]);
+
+  const handleReserve = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di prenotarla');
+      return;
+    }
+    const success = await reserveList(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, reserveList, fetchLists]);
+
+  const handleRereserve = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di riprentarla');
+      return;
+    }
+    const success = await rereserveList(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, rereserveList, fetchLists]);
+
+  const handleExecute = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di eseguirla');
+      return;
+    }
+    const success = await executeList(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, executeList, fetchLists]);
+
+  const handleWaiting = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di metterla in attesa');
+      return;
+    }
+    const success = await setListWaiting(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, setListWaiting, fetchLists]);
+
+  const handleTerminate = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di terminarla');
+      return;
+    }
+    const success = await terminateList(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+      setSelectedList(null);
+    }
+  }, [selectedList, terminateList, fetchLists]);
+
+  const handleUnprocessable = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di marcarla come inesedibile');
+      return;
+    }
+    const success = await setListUnprocessable(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, setListUnprocessable, fetchLists]);
+
+  const handleEnablePTL = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di abilitare PTL');
+      return;
+    }
+    const success = await enablePTL(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, enablePTL, fetchLists]);
+
+  const handleDisablePTL = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di disabilitare PTL');
+      return;
+    }
+    const success = await disablePTL(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, disablePTL, fetchLists]);
+
+  const handleResetPTL = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di resettare PTL');
+      return;
+    }
+    const success = await resetPTL(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, resetPTL, fetchLists]);
+
+  const handleResendPTL = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di re-inviare PTL');
+      return;
+    }
+    const success = await resendPTL(selectedList.listHeader.listNumber);
+    if (success) {
+      await fetchLists();
+    }
+  }, [selectedList, resendPTL, fetchLists]);
+
+  const handleExit = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  // ========== FILTERS HANDLERS ==========
+
+  const handleFilterChange = useCallback((newFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    fetchLists();
+  }, [fetchLists]);
+
+  // ========== TABLE HANDLERS ==========
+
+  const handleSelectList = useCallback((list) => {
+    setSelectedList(list);
+  }, []);
+
+  const handleDoubleClickList = useCallback((list) => {
+    setSelectedList(list);
+    setIsEditModalOpen(true);
+  }, []);
+
+  // ========== STATUS BAR HANDLERS ==========
+
+  const handleToggleShowAll = useCallback((value) => {
+    setShowAll(value);
+  }, []);
+
+  const handleTerminateSelected = useCallback(async () => {
+    if (!selectedList) {
+      toast.error('Seleziona una lista prima di terminarla');
+      return;
+    }
+    handleTerminate();
+  }, [selectedList, handleTerminate]);
+
+  // ========== MODAL HANDLERS ==========
+
+  const handleCreateSuccess = useCallback(async () => {
+    setIsCreateModalOpen(false);
+    await fetchLists();
+    toast.success('Lista creata con successo');
+  }, [fetchLists]);
+
+  const handleEditSuccess = useCallback(async () => {
+    setIsEditModalOpen(false);
+    await fetchLists();
+    toast.success('Lista aggiornata con successo');
+  }, [fetchLists]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // F5 - Refresh
+      if (e.key === 'F5') {
+        e.preventDefault();
+        handleRefresh();
+      }
+      // F6 - Clear
+      if (e.key === 'F6') {
+        e.preventDefault();
+        handleClear();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleRefresh, handleClear]);
+
+  const isOperationDisabled = !selectedList || operationLoading || listsLoading;
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-100">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4 shadow-lg">
+        <h1 className="text-2xl font-bold">Gestione Liste</h1>
+        <p className="text-sm text-blue-100 mt-1">
+          Sistema di gestione completo per picking, refilling e inventario
+        </p>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT SIDEBAR */}
+        <ListsSidebar
+          onRefresh={handleRefresh}
+          onClear={handleClear}
+          onInsert={handleInsert}
+          onEdit={handleEdit}
+          onReserve={handleReserve}
+          onRereserve={handleRereserve}
+          onExecute={handleExecute}
+          onWaiting={handleWaiting}
+          onTerminate={handleTerminate}
+          onUnprocessable={handleUnprocessable}
+          onEnablePTL={handleEnablePTL}
+          onDisablePTL={handleDisablePTL}
+          onResetPTL={handleResetPTL}
+          onResendPTL={handleResendPTL}
+          onExit={handleExit}
+          disabled={isOperationDisabled}
+        />
+
+        {/* CENTER AREA */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Filters Bar */}
+          <ListsFiltersBar
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            onSearch={handleSearch}
+          />
+
+          {/* Status Icons Bar */}
+          <ListsStatusBar
+            pickingCount={statusCounts.picking}
+            refillingCount={statusCounts.refilling}
+            visionCount={statusCounts.vision}
+            inventoryCount={statusCounts.inventory}
+            waitingCount={statusCounts.waiting}
+            showAll={showAll}
+            onToggleShowAll={handleToggleShowAll}
+            onTerminateSelected={handleTerminateSelected}
+          />
+
+          {/* Lists Table */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {listsLoading ? (
+              <div className="flex-1 flex items-center justify-center bg-white">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Caricamento liste...</p>
+                </div>
+              </div>
+            ) : listsError ? (
+              <div className="flex-1 flex items-center justify-center bg-white">
+                <div className="text-center text-red-600">
+                  <p className="font-medium">Errore nel caricamento</p>
+                  <p className="text-sm mt-2">{listsError}</p>
+                </div>
+              </div>
+            ) : (
+              <ListsTable
+                lists={lists}
+                selectedList={selectedList}
+                onSelectList={handleSelectList}
+                onDoubleClickList={handleDoubleClickList}
+              />
+            )}
+          </div>
+
+          {/* Bottom Tabs */}
+          <ListsBottomTabs selectedList={selectedList} />
+        </div>
+      </div>
+
+      {/* Modals */}
+      <CreateListModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      <EditListModal
+        isOpen={isEditModalOpen}
+        list={selectedList}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+    </div>
+  );
+}

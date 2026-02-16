@@ -1,0 +1,545 @@
+// ============================================================================
+// EJLOG WMS - Lists Management Page
+// Gestione Liste (Picking/Refilling/Inventory) - Refactored with Tailwind
+// ============================================================================
+
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
+import Table from '../../components/shared/Table';
+import Badge from '../../components/shared/Badge';
+import Spinner from '../../components/shared/Spinner';
+import * as ListsService from '../../services/listsService';
+import type { List, ListType, ListStatus } from '../../services/listsService';
+
+const ListsManagementPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  // State
+  const [lists, setLists] = useState<List[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage] = useState(25);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  // Filters
+  const [filterListNumber, setFilterListNumber] = useState('');
+  const [filterListType, setFilterListType] = useState<ListType | 'ALL'>('ALL');
+  const [filterListStatus, setFilterListStatus] = useState<ListStatus | 'ALL'>('ALL');
+  const [filterOrderNumber, setFilterOrderNumber] = useState('');
+
+  // Detail modal
+  const [selectedList, setSelectedList] = useState<List | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Load lists
+  const loadLists = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params: ListsService.GetListsParams = {
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+        ...(filterListNumber && { listNumber: filterListNumber }),
+        ...(filterListType !== 'ALL' && { listType: filterListType }),
+        ...(filterListStatus !== 'ALL' && { listStatus: filterListStatus }),
+        ...(filterOrderNumber && { orderNumber: filterOrderNumber }),
+      };
+
+      const response = await ListsService.getLists(params);
+
+      if (response.result === 'OK') {
+        setLists(response.exportedItems || []);
+        setTotalRecords(response.recordNumber || 0);
+      } else {
+        setError(response.message || 'Errore nel caricamento liste');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore di connessione al server');
+      console.error('Error loading lists:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage, filterListNumber, filterListType, filterListStatus, filterOrderNumber]);
+
+  useEffect(() => {
+    loadLists();
+  }, [loadLists]);
+
+  // Calculate progress for a list
+  const calculateProgress = useCallback((list: List): number => {
+    if (!list.listRows || list.listRows.length === 0) return 0;
+    const totalProcessed = list.listRows.reduce((sum, row) => sum + (row.processedQty || 0), 0);
+    const totalRequested = list.listRows.reduce((sum, row) => sum + row.requestedQty, 0);
+    return totalRequested > 0 ? (totalProcessed / totalRequested) * 100 : 0;
+  }, []);
+
+  // Get label functions
+  const getListTypeLabel = useCallback((type: ListType): string => {
+    switch (type) {
+      case ListsService.ListType.PICKING:
+        return 'Picking';
+      case ListsService.ListType.REFILLING:
+        return 'Rifornimento';
+      case ListsService.ListType.INVENTORY:
+        return 'Inventario';
+      default:
+        return 'Sconosciuto';
+    }
+  }, []);
+
+  const getListStatusBadge = useCallback((status: ListStatus) => {
+    switch (status) {
+      case ListsService.ListStatus.WAITING:
+        return <Badge variant="secondary">In Attesa</Badge>;
+      case ListsService.ListStatus.IN_PROGRESS:
+        return <Badge variant="info">In Esecuzione</Badge>;
+      case ListsService.ListStatus.COMPLETED:
+        return <Badge variant="success">Completata</Badge>;
+      default:
+        return <Badge variant="secondary">Sconosciuto</Badge>;
+    }
+  }, []);
+
+  const handleDelete = useCallback(async (list: List) => {
+    if (!confirm(`Confermi l'eliminazione della lista "${list.listHeader.listNumber}"?`)) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await ListsService.deleteList(list.listHeader.listNumber);
+
+      if (response.result === 'OK') {
+        loadLists();
+      } else {
+        setError(response.message || "Errore nell'eliminazione lista");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore di connessione al server');
+      console.error('Error deleting list:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadLists]);
+
+  const handleViewDetails = useCallback((list: List) => {
+    setSelectedList(list);
+    setShowDetailModal(true);
+  }, []);
+
+  // Statistics - MEMOIZED for performance
+  const stats = useMemo(() => {
+    return {
+      total: lists.length,
+      picking: lists.filter(l => l.listHeader.listType === ListsService.ListType.PICKING).length,
+      refilling: lists.filter(l => l.listHeader.listType === ListsService.ListType.REFILLING).length,
+      completed: lists.filter(l => l.listHeader.listStatus === ListsService.ListStatus.COMPLETED).length,
+      inProgress: lists.filter(l => l.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS).length,
+    };
+  }, [lists]);
+
+  if (loading && lists.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Gestione Liste</h1>
+          <p className="text-gray-600 mt-1">
+            {totalRecords} liste trovate
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate('/lists/create')}>
+            Nuova Lista
+          </Button>
+          <Button variant="ghost" onClick={loadLists} disabled={loading}>
+            Aggiorna
+          </Button>
+        </div>
+      </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Card className="bg-red-50 border-l-4 border-red-500">
+          <div className="flex items-center justify-between">
+            <p className="text-red-600">{error}</p>
+            <Button size="sm" variant="ghost" onClick={() => setError(null)}>
+              Chiudi
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-5 gap-4">
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Totale Liste</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Picking</p>
+            <p className="text-3xl font-bold text-green-600">{stats.picking}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Rifornimento</p>
+            <p className="text-3xl font-bold text-orange-600">{stats.refilling}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">In Esecuzione</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.inProgress}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Completate</p>
+            <p className="text-3xl font-bold text-purple-600">{stats.completed}</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Numero Lista
+            </label>
+            <input
+              type="text"
+              placeholder="Cerca numero lista"
+              value={filterListNumber}
+              onChange={(e) => setFilterListNumber(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo Lista
+            </label>
+            <select
+              value={filterListType}
+              onChange={(e) => setFilterListType(e.target.value as ListType | 'ALL')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="ALL">Tutti i tipi</option>
+              <option value={ListsService.ListType.PICKING}>Picking</option>
+              <option value={ListsService.ListType.REFILLING}>Rifornimento</option>
+              <option value={ListsService.ListType.INVENTORY}>Inventario</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Stato
+            </label>
+            <select
+              value={filterListStatus}
+              onChange={(e) => setFilterListStatus(e.target.value as ListStatus | 'ALL')}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="ALL">Tutti gli stati</option>
+              <option value={ListsService.ListStatus.WAITING}>In Attesa</option>
+              <option value={ListsService.ListStatus.IN_PROGRESS}>In Esecuzione</option>
+              <option value={ListsService.ListStatus.COMPLETED}>Completata</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Numero Commessa
+            </label>
+            <input
+              type="text"
+              placeholder="Cerca commessa"
+              value={filterOrderNumber}
+              onChange={(e) => setFilterOrderNumber(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setFilterListNumber('');
+              setFilterListType('ALL');
+              setFilterListStatus('ALL');
+              setFilterOrderNumber('');
+            }}
+          >
+            Reset Filtri
+          </Button>
+        </div>
+      </Card>
+
+      {/* Lists Table */}
+      <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Elenco Liste</h2>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost">
+              Esporta Excel
+            </Button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : lists.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg">Nessuna lista trovata</p>
+            <p className="text-sm mt-2">Prova a modificare i filtri di ricerca</p>
+          </div>
+        ) : (
+          <Table
+            columns={[
+              {
+                key: 'listNumber',
+                label: 'Numero Lista',
+                render: (row) => (
+                  <button
+                    className="text-blue-600 hover:underline font-semibold"
+                    onClick={() => navigate(`/lists/${row.listHeader.listNumber}`)}
+                  >
+                    {row.listHeader.listNumber}
+                  </button>
+                ),
+              },
+              {
+                key: 'description',
+                label: 'Descrizione',
+                render: (row) => (
+                  <span className="text-sm">
+                    {row.listHeader.listDescription || '-'}
+                  </span>
+                ),
+              },
+              {
+                key: 'type',
+                label: 'Tipo',
+                render: (row) => (
+                  <Badge variant="info">
+                    {getListTypeLabel(row.listHeader.listType)}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'status',
+                label: 'Stato',
+                render: (row) => getListStatusBadge(row.listHeader.listStatus),
+              },
+              {
+                key: 'orderNumber',
+                label: 'Commessa',
+                render: (row) => (
+                  row.listHeader.orderNumber ? (
+                    <Badge variant="secondary">{row.listHeader.orderNumber}</Badge>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )
+                ),
+              },
+              {
+                key: 'rows',
+                label: 'Righe',
+                render: (row) => (
+                  <span className="font-semibold">
+                    {row.listRows?.length || 0}
+                  </span>
+                ),
+              },
+              {
+                key: 'progress',
+                label: 'Progresso',
+                render: (row) => {
+                  const progress = calculateProgress(row);
+                  return (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium w-12">{progress.toFixed(0)}%</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${progress === 100 ? 'bg-green-600' : 'bg-blue-600'}`}
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'actions',
+                label: 'Azioni',
+                render: (row) => (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => handleViewDetails(row)}
+                    >
+                      Dettagli
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => handleDelete(row)}
+                      disabled={row.listHeader.listStatus === ListsService.ListStatus.IN_PROGRESS}
+                    >
+                      Elimina
+                    </Button>
+                  </div>
+                ),
+              },
+            ]}
+            data={lists}
+          />
+        )}
+
+        {/* Pagination Info */}
+        {totalRecords > rowsPerPage && (
+          <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+            <div>
+              Visualizzati {page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, totalRecords)} di {totalRecords}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={page === 0}
+                onClick={() => setPage(page - 1)}
+              >
+                Precedente
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={(page + 1) * rowsPerPage >= totalRecords}
+                onClick={() => setPage(page + 1)}
+              >
+                Successivo
+              </Button>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Detail Modal */}
+      {showDetailModal && selectedList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedList.listHeader.listNumber}</h2>
+                  <p className="text-gray-600">{selectedList.listHeader.listDescription}</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowDetailModal(false)}>
+                  Chiudi
+                </Button>
+              </div>
+
+              {/* List Header Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-600">Tipo</p>
+                  <Badge variant="info" className="mt-1">
+                    {getListTypeLabel(selectedList.listHeader.listType)}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Stato</p>
+                  <div className="mt-1">
+                    {getListStatusBadge(selectedList.listHeader.listStatus)}
+                  </div>
+                </div>
+                {selectedList.listHeader.orderNumber && (
+                  <div>
+                    <p className="text-sm text-gray-600">Commessa</p>
+                    <p className="font-semibold">{selectedList.listHeader.orderNumber}</p>
+                  </div>
+                )}
+                {selectedList.listHeader.cause && (
+                  <div>
+                    <p className="text-sm text-gray-600">Causale</p>
+                    <p className="font-semibold">{selectedList.listHeader.cause}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* List Rows */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Righe Lista ({selectedList.listRows?.length || 0})
+                </h3>
+                {selectedList.listRows && selectedList.listRows.length > 0 ? (
+                  <div className="space-y-2">
+                    {selectedList.listRows.map((row, idx) => (
+                      <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold">{row.item}</p>
+                            {row.lineDescription && (
+                              <p className="text-sm text-gray-600">{row.lineDescription}</p>
+                            )}
+                            <div className="flex gap-4 mt-2 text-sm">
+                              {row.lot && <span className="text-gray-600">Lotto: {row.lot}</span>}
+                              {row.expiryDate && <span className="text-gray-600">Scadenza: {row.expiryDate}</span>}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-600">Richiesto: {row.requestedQty}</p>
+                            <p className="text-sm text-gray-600">Evaso: {row.processedQty || 0}</p>
+                            <Badge
+                              variant={row.processedQty === row.requestedQty ? 'success' : 'secondary'}
+                              size="sm"
+                              className="mt-1"
+                            >
+                              {row.requestedQty > 0
+                                ? ((row.processedQty || 0) / row.requestedQty * 100).toFixed(0)
+                                : 0}%
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-8">Nessuna riga presente</p>
+                )}
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ListsManagementPage;

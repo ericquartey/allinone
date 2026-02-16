@@ -1,0 +1,433 @@
+// src/pages/ListsManagement.jsx
+
+import React, { useState, useCallback, useMemo } from 'react';
+import {
+  MagnifyingGlassIcon,
+  DocumentTextIcon,
+  PlusIcon,
+  PencilSquareIcon,
+  TrashIcon,
+  ArrowPathIcon,
+  FunnelIcon,
+  ClipboardDocumentListIcon
+} from '@heroicons/react/24/outline';
+import { useLists } from '../hooks/useLists';
+import { CreateListModal } from '../components/lists/CreateListModal';
+import { EditListModal } from '../components/lists/EditListModal';
+import { EditListRowsModal } from '../components/lists/EditListRowsModal';
+import { ListDetailPanel } from '../components/lists/ListDetailPanel';
+import { ListType, ListStatus, getListTypeLabel, getListStatusLabel, getListStatusColor } from '../types/lists';
+
+/**
+ * Lists Management Page
+ * Replicates ALL functionality from Swing UI for Lists
+ * Features:
+ * - Left sidebar with list search, filters, and list of lists (TaskPane)
+ * - Center panel with selected list details and rows table
+ * - Right sidebar with operation buttons (TaskPane)
+ */
+export default function ListsManagement() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedListType, setSelectedListType] = useState('');
+  const [selectedListStatus, setSelectedListStatus] = useState('');
+  const [selectedList, setSelectedList] = useState(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditRowsModalOpen, setIsEditRowsModalOpen] = useState(false);
+
+  // Memoize filters to prevent infinite loops
+  const listFilters = useMemo(() => ({
+    listNumber: searchTerm || undefined,
+    listType: selectedListType !== '' ? parseInt(selectedListType) : undefined,
+    listStatus: selectedListStatus !== '' ? parseInt(selectedListStatus) : undefined,
+    limit: 100
+  }), [searchTerm, selectedListType, selectedListStatus]);
+
+  // Fetch lists with filters
+  const { lists, loading: listsLoading, error: listsError, fetchLists, deleteList } = useLists(listFilters);
+
+  const handleListSelect = (list) => {
+    setSelectedList(list);
+  };
+
+  const handleSearch = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  const handleTypeFilterChange = useCallback((e) => {
+    setSelectedListType(e.target.value);
+  }, []);
+
+  const handleStatusFilterChange = useCallback((e) => {
+    setSelectedListStatus(e.target.value);
+  }, []);
+
+  const handleCreateList = useCallback(() => {
+    setIsCreateModalOpen(true);
+  }, []);
+
+  const handleEditList = useCallback(() => {
+    if (selectedList) {
+      setIsEditModalOpen(true);
+    }
+  }, [selectedList]);
+
+  const handleEditRows = useCallback(() => {
+    if (selectedList) {
+      setIsEditRowsModalOpen(true);
+    }
+  }, [selectedList]);
+
+  const handleDeleteList = useCallback(async () => {
+    if (!selectedList) return;
+
+    const confirmed = window.confirm(
+      `Sei sicuro di voler eliminare la lista ${selectedList.listHeader.listNumber}?`
+    );
+
+    if (confirmed) {
+      const success = await deleteList(selectedList.listHeader.listNumber);
+      if (success) {
+        setSelectedList(null);
+        alert('Lista eliminata con successo');
+      } else {
+        alert('Errore nell\'eliminazione della lista');
+      }
+    }
+  }, [selectedList, deleteList]);
+
+  const handleRefresh = useCallback(async () => {
+    await fetchLists();
+  }, [fetchLists]);
+
+  const handleCreateSuccess = useCallback(async () => {
+    setIsCreateModalOpen(false);
+    await fetchLists();
+    alert('Lista creata con successo');
+  }, [fetchLists]);
+
+  const handleEditSuccess = useCallback(async () => {
+    setIsEditModalOpen(false);
+    await fetchLists();
+    // Refresh selected list
+    if (selectedList) {
+      const updatedLists = await fetchLists();
+      const updated = lists.find(l => l.listHeader.listNumber === selectedList.listHeader.listNumber);
+      if (updated) {
+        setSelectedList(updated);
+      }
+    }
+    alert('Lista aggiornata con successo');
+  }, [fetchLists, selectedList, lists]);
+
+  const handleEditRowsSuccess = useCallback(async () => {
+    setIsEditRowsModalOpen(false);
+    await fetchLists();
+    // Refresh selected list
+    if (selectedList) {
+      const updated = lists.find(l => l.listHeader.listNumber === selectedList.listHeader.listNumber);
+      if (updated) {
+        setSelectedList(updated);
+      }
+    }
+    alert('Righe aggiornate con successo');
+  }, [fetchLists, selectedList, lists]);
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestione Liste</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Visualizza e gestisci liste di picking, refilling e inventario
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <ArrowPathIcon className="h-5 w-5" />
+              Aggiorna
+            </button>
+            <button
+              onClick={handleCreateList}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Nuova Lista
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar - List Search & Filters (TaskPane) */}
+        <div className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'w-16' : 'w-80'
+        }`}>
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-200">
+            {!sidebarCollapsed && (
+              <>
+                <h2 className="font-semibold text-gray-900 mb-3">Ricerca Liste</h2>
+
+                {/* Search */}
+                <div className="relative mb-3">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    placeholder="Cerca per numero lista..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Type Filter */}
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Tipo Lista</label>
+                  <select
+                    value={selectedListType}
+                    onChange={handleTypeFilterChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Tutti i tipi</option>
+                    <option value={ListType.PICKING}>Picking</option>
+                    <option value={ListType.REFILLING}>Refilling</option>
+                    <option value={ListType.INVENTORY}>Inventario</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Stato Lista</label>
+                  <select
+                    value={selectedListStatus}
+                    onChange={handleStatusFilterChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Tutti gli stati</option>
+                    <option value={ListStatus.WAITING}>In Attesa</option>
+                    <option value={ListStatus.IN_EXECUTION}>In Esecuzione</option>
+                    <option value={ListStatus.TERMINATED}>Terminata</option>
+                    <option value={ListStatus.SUSPENDED}>Sospesa</option>
+                  </select>
+                </div>
+              </>
+            )}
+
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="mt-3 w-full px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              {sidebarCollapsed ? '→' : '←'}
+            </button>
+          </div>
+
+          {!sidebarCollapsed && (
+            <>
+              {/* List Count */}
+              <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Liste trovate:</span>
+                  <span className="font-semibold text-gray-900">{lists.length}</span>
+                </div>
+              </div>
+
+              {/* Lists List */}
+              <div className="flex-1 overflow-y-auto">
+                {listsLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : listsError ? (
+                  <div className="p-4 text-sm text-red-600">{listsError}</div>
+                ) : !lists || lists.length === 0 ? (
+                  <div className="p-4 text-sm text-gray-500 text-center">
+                    Nessuna lista trovata
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-200">
+                    {lists.map((listExport) => {
+                      const list = listExport.listHeader;
+                      const rows = listExport.listRows || [];
+                      const isSelected = selectedList?.listHeader?.listNumber === list.listNumber;
+
+                      return (
+                        <button
+                          key={list.listNumber}
+                          onClick={() => handleListSelect(listExport)}
+                          className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                            isSelected ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <DocumentTextIcon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+                              isSelected ? 'text-blue-600' : 'text-gray-400'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-900 truncate">
+                                {list.listNumber}
+                              </div>
+                              {list.listDescription && (
+                                <div className="text-xs text-gray-500 truncate mt-0.5">
+                                  {list.listDescription}
+                                </div>
+                              )}
+                              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                  list.listType === ListType.PICKING ? 'bg-green-100 text-green-800' :
+                                  list.listType === ListType.REFILLING ? 'bg-blue-100 text-blue-800' :
+                                  'bg-purple-100 text-purple-800'
+                                }`}>
+                                  {getListTypeLabel(list.listType)}
+                                </span>
+                                {list.listStatus !== undefined && (
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                    list.listStatus === ListStatus.WAITING ? 'bg-yellow-100 text-yellow-800' :
+                                    list.listStatus === ListStatus.IN_EXECUTION ? 'bg-blue-100 text-blue-800' :
+                                    list.listStatus === ListStatus.TERMINATED ? 'bg-green-100 text-green-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {getListStatusLabel(list.listStatus)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                {rows.length} {rows.length === 1 ? 'riga' : 'righe'}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Center Panel - List Details */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {selectedList ? (
+            <ListDetailPanel list={selectedList} />
+          ) : (
+            <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <ClipboardDocumentListIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna lista selezionata</h3>
+                <p className="text-sm text-gray-500">
+                  Seleziona una lista dalla barra laterale per visualizzarne i dettagli
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar - Operations (TaskPane) */}
+        <div className="w-64 bg-white border-l border-gray-200 p-4">
+          <div className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-3">
+            Operazioni
+          </div>
+
+          <div className="space-y-2">
+            <button
+              onClick={handleCreateList}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Nuova Lista
+            </button>
+
+            <button
+              onClick={handleEditList}
+              disabled={!selectedList}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+              Modifica Testata
+            </button>
+
+            <button
+              onClick={handleEditRows}
+              disabled={!selectedList}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ClipboardDocumentListIcon className="h-4 w-4" />
+              Modifica Righe
+            </button>
+
+            <button
+              onClick={handleDeleteList}
+              disabled={!selectedList}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <TrashIcon className="h-4 w-4" />
+              Elimina Lista
+            </button>
+
+            <div className="pt-3 border-t border-gray-200 mt-3">
+              <button
+                onClick={handleRefresh}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <ArrowPathIcon className="h-4 w-4" />
+                Aggiorna
+              </button>
+            </div>
+          </div>
+
+          {/* Info Panel */}
+          {selectedList && (
+            <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-xs font-semibold text-blue-900 mb-2">Lista Selezionata</div>
+              <div className="text-xs text-blue-800">
+                <div className="mb-1">
+                  <span className="font-medium">Numero:</span> {selectedList.listHeader.listNumber}
+                </div>
+                <div className="mb-1">
+                  <span className="font-medium">Tipo:</span> {getListTypeLabel(selectedList.listHeader.listType)}
+                </div>
+                {selectedList.listHeader.listStatus !== undefined && (
+                  <div className="mb-1">
+                    <span className="font-medium">Stato:</span> {getListStatusLabel(selectedList.listHeader.listStatus)}
+                  </div>
+                )}
+                <div>
+                  <span className="font-medium">Righe:</span> {selectedList.listRows?.length || 0}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modals */}
+      <CreateListModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
+
+      <EditListModal
+        isOpen={isEditModalOpen}
+        list={selectedList}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
+
+      <EditListRowsModal
+        isOpen={isEditRowsModalOpen}
+        list={selectedList}
+        onClose={() => setIsEditRowsModalOpen(false)}
+        onSuccess={handleEditRowsSuccess}
+      />
+    </div>
+  );
+}

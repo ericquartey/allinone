@@ -1,0 +1,1679 @@
+openapi: 3.0.3
+info:
+  title: EjLog WMS API
+  description: |
+    REST API completa per EjLog Warehouse Management System
+
+    ## Caratteristiche
+    - Gestione completa UDC (Unità Di Carico / Loading Units)
+    - Gestione scomparti per ogni UDC
+    - Gestione articoli e giacenze
+    - Gestione liste di prelievo
+    - Gestione ubicazioni magazzino
+    - Autenticazione utenti
+
+    ## Database
+    - SQL Server su localhost\SQL2019
+    - Database: promag
+
+  version: 1.0.0
+  contact:
+    name: Ferretto Group
+    email: support@ferretto.com
+
+servers:
+  - url: http://localhost:3077
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: Autenticazione e gestione sessioni
+  - name: Users
+    description: Gestione utenti
+  - name: User Groups
+    description: Gestione gruppi utenti
+  - name: Loading Units
+    description: Gestione UDC (Unità Di Carico / Cassetti)
+  - name: Compartments
+    description: Gestione scomparti UDC
+  - name: Items
+    description: Gestione articoli/prodotti
+  - name: Item Lists
+    description: Gestione liste di prelievo/spedizione
+  - name: Locations
+    description: Gestione ubicazioni magazzino
+  - name: Stock
+    description: Gestione giacenze magazzino
+
+components:
+  schemas:
+    # Common Schemas
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se l'operazione è riuscita
+        data:
+          type: object
+          description: Dati di risposta
+        error:
+          type: string
+          description: Messaggio di errore se success=false
+
+    PaginationInfo:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Numero totale di record
+        limit:
+          type: integer
+          description: Numero massimo di record per pagina
+        offset:
+          type: integer
+          description: Offset corrente
+        hasMore:
+          type: boolean
+          description: Indica se ci sono altri record disponibili
+
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: superuser
+        password:
+          type: string
+          example: promag02
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+        message:
+          type: string
+        isSuperuser:
+          type: boolean
+
+    # User Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: admin
+        groupId:
+          type: integer
+          example: 1
+        groupName:
+          type: string
+          example: ADMINISTRATORS
+        groupLevel:
+          type: integer
+          example: 0
+        languageId:
+          type: integer
+          example: 1
+        barcode:
+          type: string
+          nullable: true
+
+    CreateUserRequest:
+      type: object
+      required:
+        - username
+        - password
+        - groupId
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+        password:
+          type: string
+          minLength: 6
+        groupId:
+          type: integer
+        languageId:
+          type: integer
+          default: 1
+        barcode:
+          type: string
+          nullable: true
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        groupId:
+          type: integer
+        languageId:
+          type: integer
+        barcode:
+          type: string
+
+    # User Group Schemas
+    UserGroup:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        level:
+          type: integer
+
+    CreateUserGroupRequest:
+      type: object
+      required:
+        - name
+        - level
+      properties:
+        name:
+          type: string
+        level:
+          type: integer
+        description:
+          type: string
+
+    # Loading Unit Schemas
+    LoadingUnit:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        barcode:
+          type: string
+          example: UDC001
+        description:
+          type: string
+          nullable: true
+        code:
+          type: string
+          example: "001"
+        width:
+          type: number
+          format: float
+          example: 800
+        depth:
+          type: number
+          format: float
+          example: 600
+        height:
+          type: number
+          format: float
+          example: 1200
+        compartmentCount:
+          type: integer
+          example: 4
+        isBlockedFromEjlog:
+          type: boolean
+        locationId:
+          type: integer
+          nullable: true
+        warehouseId:
+          type: integer
+          nullable: true
+        productsCount:
+          type: integer
+        fillPercentage:
+          type: number
+          format: float
+
+    CreateLoadingUnitRequest:
+      type: object
+      required:
+        - barcode
+        - width
+        - depth
+        - height
+      properties:
+        barcode:
+          type: string
+        description:
+          type: string
+        code:
+          type: string
+        width:
+          type: number
+          format: float
+        depth:
+          type: number
+          format: float
+        height:
+          type: number
+          format: float
+        compartmentCount:
+          type: integer
+          default: 0
+        locationId:
+          type: integer
+        warehouseId:
+          type: integer
+
+    UpdateLoadingUnitRequest:
+      type: object
+      properties:
+        barcode:
+          type: string
+        description:
+          type: string
+        code:
+          type: string
+        width:
+          type: number
+        depth:
+          type: number
+        height:
+          type: number
+        isBlockedFromEjlog:
+          type: boolean
+        locationId:
+          type: integer
+        warehouseId:
+          type: integer
+
+    # Compartment Schemas
+    Compartment:
+      type: object
+      properties:
+        id:
+          type: integer
+        loadingUnitId:
+          type: integer
+        compartmentNumber:
+          type: integer
+        position:
+          type: integer
+        width:
+          type: number
+          format: float
+        depth:
+          type: number
+          format: float
+        height:
+          type: number
+          format: float
+        fillPercentage:
+          type: number
+          format: float
+        isBlocked:
+          type: boolean
+
+    CreateCompartmentRequest:
+      type: object
+      required:
+        - compartmentNumber
+        - position
+      properties:
+        compartmentNumber:
+          type: integer
+        position:
+          type: integer
+        width:
+          type: number
+        depth:
+          type: number
+        height:
+          type: number
+        fillPercentage:
+          type: number
+          default: 0
+        isBlocked:
+          type: boolean
+          default: false
+
+    UpdateCompartmentRequest:
+      type: object
+      properties:
+        compartmentNumber:
+          type: integer
+        position:
+          type: integer
+        width:
+          type: number
+        depth:
+          type: number
+        height:
+          type: number
+        fillPercentage:
+          type: number
+        isBlocked:
+          type: boolean
+
+    # Item Schemas
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        barcode:
+          type: string
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        unitOfMeasure:
+          type: string
+        weight:
+          type: number
+          format: float
+        volume:
+          type: number
+          format: float
+        price:
+          type: number
+          format: float
+        isActive:
+          type: boolean
+
+    CreateItemRequest:
+      type: object
+      required:
+        - code
+        - description
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        barcode:
+          type: string
+        categoryId:
+          type: integer
+        unitOfMeasure:
+          type: string
+        weight:
+          type: number
+        volume:
+          type: number
+        price:
+          type: number
+
+    UpdateItemRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        barcode:
+          type: string
+        categoryId:
+          type: integer
+        unitOfMeasure:
+          type: string
+        weight:
+          type: number
+        volume:
+          type: number
+        price:
+          type: number
+        isActive:
+          type: boolean
+
+    ItemStock:
+      type: object
+      properties:
+        itemId:
+          type: integer
+        locationId:
+          type: integer
+        locationCode:
+          type: string
+        quantity:
+          type: number
+          format: float
+        reservedQuantity:
+          type: number
+          format: float
+        availableQuantity:
+          type: number
+          format: float
+
+    # Item List Schemas
+    ItemList:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [PICKING, SHIPPING, RECEIVING, INVENTORY]
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        itemCount:
+          type: integer
+
+    CreateItemListRequest:
+      type: object
+      required:
+        - code
+        - type
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [PICKING, SHIPPING, RECEIVING, INVENTORY]
+
+    UpdateItemListRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED]
+
+    ItemListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        listId:
+          type: integer
+        itemId:
+          type: integer
+        itemCode:
+          type: string
+        itemDescription:
+          type: string
+        quantity:
+          type: number
+          format: float
+        pickedQuantity:
+          type: number
+          format: float
+        locationId:
+          type: integer
+        locationCode:
+          type: string
+
+    AddItemToListRequest:
+      type: object
+      required:
+        - itemId
+        - quantity
+      properties:
+        itemId:
+          type: integer
+        quantity:
+          type: number
+          format: float
+        locationId:
+          type: integer
+
+    # Location Schemas
+    Location:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [RACK, FLOOR, BUFFER, PICKING]
+        aisle:
+          type: string
+        bay:
+          type: string
+        level:
+          type: string
+        position:
+          type: string
+        capacity:
+          type: number
+          format: float
+        currentLoad:
+          type: number
+          format: float
+        isBlocked:
+          type: boolean
+        warehouseId:
+          type: integer
+
+    CreateLocationRequest:
+      type: object
+      required:
+        - code
+        - type
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [RACK, FLOOR, BUFFER, PICKING]
+        aisle:
+          type: string
+        bay:
+          type: string
+        level:
+          type: string
+        position:
+          type: string
+        capacity:
+          type: number
+        warehouseId:
+          type: integer
+
+    UpdateLocationRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        aisle:
+          type: string
+        bay:
+          type: string
+        level:
+          type: string
+        position:
+          type: string
+        capacity:
+          type: number
+        isBlocked:
+          type: boolean
+
+    # Stock Schemas
+    StockItem:
+      type: object
+      properties:
+        item:
+          type: string
+          description: Codice articolo
+          example: "ART001"
+        description:
+          type: string
+          description: Descrizione articolo
+          example: "Articolo di test"
+        lot:
+          type: string
+          nullable: true
+          description: Numero lotto
+          example: "LOT123"
+        serialNumber:
+          type: string
+          nullable: true
+          description: Numero seriale/matricola
+          example: "SN456789"
+        expiryDate:
+          type: string
+          nullable: true
+          description: Data scadenza (yyyyMMdd)
+          example: "20251231"
+        qty:
+          type: number
+          format: decimal
+          description: Quantità disponibile
+          example: 100.50
+        warehouseId:
+          type: integer
+          description: ID magazzino
+          example: 1
+        LU:
+          type: integer
+          nullable: true
+          description: ID UDC (Loading Unit / Cassetto)
+          example: 42
+
+    StockResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [OK, NOT OK]
+          description: Esito operazione
+        message:
+          type: string
+          description: Messaggio descrittivo
+        recordNumber:
+          type: integer
+          description: Numero totale di record trovati
+        exportedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockItem'
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              errorMessage:
+                type: string
+              stackTrace:
+                type: string
+
+paths:
+  # Authentication Endpoints
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login utente
+      description: Autentica un utente con username e password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login riuscito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenziali non valide
+        '500':
+          description: Errore server
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout utente
+      responses:
+        '200':
+          description: Logout riuscito
+
+  # User Endpoints
+  /api/users/search:
+    get:
+      tags:
+        - Users
+      summary: Cerca utenti
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+        - in: query
+          name: groupId
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista utenti
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+  /api/users:
+    post:
+      tags:
+        - Users
+      summary: Crea nuovo utente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Utente creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Dati non validi
+        '409':
+          description: Username già esistente
+
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Dettaglio utente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utente non trovato
+
+    put:
+      tags:
+        - Users
+      summary: Aggiorna utente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Utente aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utente non trovato
+
+    delete:
+      tags:
+        - Users
+      summary: Elimina utente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Utente eliminato
+        '404':
+          description: Utente non trovato
+
+  # User Groups Endpoints
+  /api/user-groups:
+    get:
+      tags:
+        - User Groups
+      summary: Lista gruppi utenti
+      responses:
+        '200':
+          description: Lista gruppi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserGroup'
+
+    post:
+      tags:
+        - User Groups
+      summary: Crea nuovo gruppo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserGroupRequest'
+      responses:
+        '201':
+          description: Gruppo creato
+
+  /api/user-groups/{id}:
+    get:
+      tags:
+        - User Groups
+      summary: Dettaglio gruppo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio gruppo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGroup'
+
+    put:
+      tags:
+        - User Groups
+      summary: Aggiorna gruppo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Gruppo aggiornato
+
+    delete:
+      tags:
+        - User Groups
+      summary: Elimina gruppo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Gruppo eliminato
+
+  # Loading Units Endpoints
+  /api/loading-units:
+    get:
+      tags:
+        - Loading Units
+      summary: Lista UDC (cassetti)
+      description: Ottiene tutti gli UDC con filtri opzionali
+      parameters:
+        - in: query
+          name: barcode
+          schema:
+            type: string
+          description: Filtra per barcode
+        - in: query
+          name: warehouseId
+          schema:
+            type: integer
+          description: Filtra per magazzino
+        - in: query
+          name: locationId
+          schema:
+            type: integer
+          description: Filtra per ubicazione
+        - in: query
+          name: isBlocked
+          schema:
+            type: boolean
+          description: Filtra per stato bloccato
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista UDC
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LoadingUnit'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Loading Units
+      summary: Crea nuovo UDC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoadingUnitRequest'
+      responses:
+        '201':
+          description: UDC creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadingUnit'
+
+  /api/loading-units/{id}:
+    get:
+      tags:
+        - Loading Units
+      summary: Dettaglio UDC
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio UDC
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoadingUnit'
+
+    put:
+      tags:
+        - Loading Units
+      summary: Aggiorna UDC
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLoadingUnitRequest'
+      responses:
+        '200':
+          description: UDC aggiornato
+
+    delete:
+      tags:
+        - Loading Units
+      summary: Elimina UDC
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: UDC eliminato
+
+  # Compartments Endpoints
+  /api/loading-units/{id}/compartments:
+    get:
+      tags:
+        - Compartments
+      summary: Lista scomparti per UDC
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID dell'UDC
+      responses:
+        '200':
+          description: Lista scomparti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Compartment'
+
+    post:
+      tags:
+        - Compartments
+      summary: Crea nuovo scomparto per UDC
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompartmentRequest'
+      responses:
+        '201':
+          description: Scomparto creato
+
+  /api/compartments/{id}:
+    get:
+      tags:
+        - Compartments
+      summary: Dettaglio scomparto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio scomparto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compartment'
+
+    put:
+      tags:
+        - Compartments
+      summary: Aggiorna scomparto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompartmentRequest'
+      responses:
+        '200':
+          description: Scomparto aggiornato
+
+    delete:
+      tags:
+        - Compartments
+      summary: Elimina scomparto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Scomparto eliminato
+
+  # Items Endpoints
+  /api/items:
+    get:
+      tags:
+        - Items
+      summary: Lista articoli
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Cerca per codice, descrizione o barcode
+        - in: query
+          name: categoryId
+          schema:
+            type: integer
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista articoli
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Item'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Items
+      summary: Crea nuovo articolo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemRequest'
+      responses:
+        '201':
+          description: Articolo creato
+
+  /api/items/{id}:
+    get:
+      tags:
+        - Items
+      summary: Dettaglio articolo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio articolo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+
+    put:
+      tags:
+        - Items
+      summary: Aggiorna articolo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemRequest'
+      responses:
+        '200':
+          description: Articolo aggiornato
+
+    delete:
+      tags:
+        - Items
+      summary: Elimina articolo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Articolo eliminato
+
+  /api/items/{id}/stock:
+    get:
+      tags:
+        - Items
+      summary: Giacenze articolo
+      description: Ottiene tutte le giacenze per ubicazione di un articolo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Giacenze articolo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemStock'
+
+  # Item Lists Endpoints
+  /api/item-lists:
+    get:
+      tags:
+        - Item Lists
+      summary: Lista liste
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [PICKING, SHIPPING, RECEIVING, INVENTORY]
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, COMPLETED, CANCELLED]
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemList'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Item Lists
+      summary: Crea nuova lista
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemListRequest'
+      responses:
+        '201':
+          description: Lista creata
+
+  /api/item-lists/{id}:
+    get:
+      tags:
+        - Item Lists
+      summary: Dettaglio lista
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio lista
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemList'
+
+    put:
+      tags:
+        - Item Lists
+      summary: Aggiorna lista
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemListRequest'
+      responses:
+        '200':
+          description: Lista aggiornata
+
+    delete:
+      tags:
+        - Item Lists
+      summary: Elimina lista
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista eliminata
+
+  /api/item-lists/{id}/items:
+    get:
+      tags:
+        - Item Lists
+      summary: Items nella lista
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Items nella lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemListItem'
+
+    post:
+      tags:
+        - Item Lists
+      summary: Aggiungi item a lista
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddItemToListRequest'
+      responses:
+        '201':
+          description: Item aggiunto
+
+  /api/item-lists/{listId}/items/{itemId}:
+    delete:
+      tags:
+        - Item Lists
+      summary: Rimuovi item da lista
+      parameters:
+        - in: path
+          name: listId
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item rimosso
+
+  # Locations Endpoints
+  /api/locations:
+    get:
+      tags:
+        - Locations
+      summary: Lista ubicazioni
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [RACK, FLOOR, BUFFER, PICKING]
+        - in: query
+          name: warehouseId
+          schema:
+            type: integer
+        - in: query
+          name: isBlocked
+          schema:
+            type: boolean
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 100
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Lista ubicazioni
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Location'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationInfo'
+
+    post:
+      tags:
+        - Locations
+      summary: Crea nuova ubicazione
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationRequest'
+      responses:
+        '201':
+          description: Ubicazione creata
+
+  /api/locations/{id}:
+    get:
+      tags:
+        - Locations
+      summary: Dettaglio ubicazione
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettaglio ubicazione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Location'
+
+    put:
+      tags:
+        - Locations
+      summary: Aggiorna ubicazione
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationRequest'
+      responses:
+        '200':
+          description: Ubicazione aggiornata
+
+    delete:
+      tags:
+        - Locations
+      summary: Elimina ubicazione
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ubicazione eliminata
+
+  # Stock Endpoints
+  /api/stock:
+    get:
+      tags:
+        - Stock
+      summary: Recupera giacenze magazzino
+      description: |
+        Ottiene le giacenze filtrate per vari criteri.
+        Supporta paginazione e filtri multipli.
+      parameters:
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            maximum: 5000
+            default: 50
+          description: Limite record caricabili (max 5000)
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: Offset per paginazione
+        - in: query
+          name: warehouseId
+          schema:
+            type: integer
+          description: Filtra per ID magazzino
+        - in: query
+          name: itemCode
+          schema:
+            type: string
+          description: Filtra per codice articolo
+        - in: query
+          name: lot
+          schema:
+            type: string
+          description: Filtra per lotto
+        - in: query
+          name: serialNumber
+          schema:
+            type: string
+          description: Filtra per numero seriale/matricola
+        - in: query
+          name: expiryDate
+          schema:
+            type: string
+            pattern: '^\d{8}$'
+          description: Filtra per data scadenza (formato yyyyMMdd)
+          example: "20251231"
+        - in: query
+          name: trayId
+          schema:
+            type: integer
+          description: Filtra per ID UDC (cassetto)
+        - in: query
+          name: groupByTray
+          schema:
+            type: boolean
+            default: false
+          description: Se true, raggruppa i risultati per cassetto
+      responses:
+        '200':
+          description: Giacenze recuperate con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponse'
+              examples:
+                success:
+                  summary: Risposta di successo
+                  value:
+                    result: "OK"
+                    message: "Export complete"
+                    recordNumber: 150
+                    exportedItems:
+                      - item: "ART001"
+                        description: "Articolo Test 1"
+                        lot: "LOT123"
+                        serialNumber: "SN456"
+                        expiryDate: "20251231"
+                        qty: 100.5
+                        warehouseId: 1
+                        LU: 42
+                      - item: "ART002"
+                        description: "Articolo Test 2"
+                        lot: null
+                        serialNumber: null
+                        expiryDate: null
+                        qty: 250.0
+                        warehouseId: 1
+                        LU: 43
+        '400':
+          description: Richiesta non valida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponse'
+              examples:
+                invalidDate:
+                  summary: Formato data non valido
+                  value:
+                    result: "NOT OK"
+                    message: "Error"
+                    errors:
+                      - errorMessage: "20251301 not valid format date (Correct format yyyyMMdd)"
+        '500':
+          description: Errore server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockResponse'
+

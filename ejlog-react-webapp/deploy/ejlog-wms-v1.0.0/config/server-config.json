@@ -1,0 +1,61 @@
+{
+  "servers": {
+    "https": {
+      "enabled": true,
+      "port": 3079,
+      "name": "REST HTTPS Server",
+      "script": "server/api-server-https.js",
+      "env": {
+        "HTTPS_PORT": "3079"
+      }
+    },
+    "sqlBackend": {
+      "enabled": true,
+      "port": 3077,
+      "name": "Backend SQL (Dati Reali)",
+      "script": "server/api-server.js",
+      "env": {
+        "PORT": "3077"
+      },
+      "database": {
+        "server": "localhost\\SQL2019",
+        "database": "promag",
+        "environment": "development"
+      }
+    },
+    "reactBackend": {
+      "enabled": true,
+      "port": 8080,
+      "name": "Backend React",
+      "script": "server/api-server.js",
+      "env": {
+        "PORT": "8080"
+      }
+    },
+    "frontend": {
+      "enabled": true,
+      "port": 3000,
+      "name": "Frontend Vite",
+      "command": "npm",
+      "args": ["run", "dev:frontend-only"],
+      "env": {
+        "PORT": "3000"
+      }
+    }
+  },
+  "autoStart": {
+    "enabled": true,
+    "openBrowser": true,
+    "browserUrl": "http://localhost:3000",
+    "browserDelay": 3000
+  },
+  "features": {
+    "realTimeData": true,
+    "websocket": true,
+    "swagger": true,
+    "authentication": true,
+    "auditLog": true
+  },
+  "description": "Configurazione automatica per avvio EjLog con dati reali dal database SQL Server"
+}
+

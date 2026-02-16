@@ -1,0 +1,325 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import {
+  PlusIcon,
+  EyeIcon,
+  PencilIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
+import Card from '../../../components/common/Card';
+import Button from '../../../components/common/Button';
+import Table from '../../../components/common/Table';
+import Loading from '../../../components/common/Loading';
+import Badge from '../../../components/common/Badge';
+import ListFilters from '../../../components/lists/ListFilters';
+import CreateListWizard from '../../../components/lists/CreateListWizard';
+import { useLists } from '../../../hooks/useLists';
+
+/**
+ * ListManagementPage Enhanced - Checkpoint 1.2
+ *
+ * Features:
+ * - Enhanced Filters (tipo, stato, date range, operatore)
+ * - Create List Wizard (3-step modal)
+ * - Table con colonne: ID, Tipo, Descrizione, Stato, Operatore, Items, Azioni
+ * - Click row → Naviga a ListDetailPage
+ * - Pagination: 20 items per page
+ * - Loading states e error handling
+ */
+function ListManagementPage() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // State per wizard creazione lista
+  const [showCreateWizard, setShowCreateWizard] = useState(false);
+
+  // State per pagination
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+
+  // Leggi filtri da URL query params
+  const getFiltersFromUrl = () => ({
+    listType: searchParams.get('listType') || '',
+    status: searchParams.get('status') || '',
+    dateFrom: searchParams.get('dateFrom') || '',
+    dateTo: searchParams.get('dateTo') || '',
+    assignedTo: searchParams.get('assignedTo') || '',
+  });
+
+  const [filters, setFilters] = useState(getFiltersFromUrl());
+
+  // Sync filtri con URL
+  useEffect(() => {
+    setFilters(getFiltersFromUrl());
+  }, [searchParams]);
+
+  // Fetch lists con filtri e pagination
+  const { data, isLoading, isError, error, refetch } = useLists({
+    skip: page * pageSize,
+    take: pageSize,
+    orderBy: 'id',
+    ...filters,
+  });
+
+  // Mock data per testing se API non disponibile
+  const lists = data?.lists || [];
+  const totalCount = data?.totalCount || 0;
+
+  const handleApplyFilters = (newFilters) => {
+    // Aggiorna URL query params
+    const params = new URLSearchParams();
+
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
+
+    setSearchParams(params);
+    setPage(0); // Reset pagination
+  };
+
+  const handleRowClick = (list) => {
+    navigate(`/lists/${list.id}`);
+  };
+
+  const handleCreateList = async (listData) => {
+    try {
+      // TODO: Integrare API per creazione lista
+      console.log('Creating list:', listData);
+
+      // Simula API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Ricarica lista dopo creazione
+      refetch();
+
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error creating list:', error);
+      return Promise.reject(error);
+    }
+  };
+
+  const handleEditList = (list, e) => {
+    e.stopPropagation();
+    toast.info(`Modifica lista ${list.id} in fase di implementazione`);
+  };
+
+  const handleDeleteList = async (list, e) => {
+    e.stopPropagation();
+
+    const confirmed = window.confirm(
+      `Sei sicuro di voler eliminare la lista ${list.id}? L'operazione non è reversibile.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // TODO: Integrare API per eliminazione lista
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Lista eliminata con successo');
+      refetch();
+    } catch (error) {
+      toast.error('Errore durante l\'eliminazione della lista');
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      OPEN: { label: 'Aperta', variant: 'info' },
+      IN_PROGRESS: { label: 'In Corso', variant: 'warning' },
+      COMPLETED: { label: 'Completata', variant: 'success' },
+      CANCELLED: { label: 'Annullata', variant: 'error' },
+    };
+
+    const statusInfo = statusMap[status] || { label: 'Sconosciuto', variant: 'default' };
+    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
+  };
+
+  const getTypeBadge = (listType) => {
+    const typeMap = {
+      0: { label: 'Picking', color: 'bg-blue-100 text-blue-800' },
+      1: { label: 'Refilling', color: 'bg-green-100 text-green-800' },
+      2: { label: 'Inventory', color: 'bg-purple-100 text-purple-800' },
+    };
+
+    const typeInfo = typeMap[listType] || { label: 'Altro', color: 'bg-gray-100 text-gray-800' };
+
+    return (
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${typeInfo.color}`}>
+        {typeInfo.label}
+      </span>
+    );
+  };
+
+  const columns = [
+    {
+      accessorKey: 'id',
+      header: 'N° Lista',
+      cell: ({ row }) => (
+        <span className="font-medium text-ferretto-red">#{row.original.id}</span>
+      ),
+    },
+    {
+      accessorKey: 'listType',
+      header: 'Tipo',
+      cell: ({ row }) => getTypeBadge(row.original.listType),
+    },
+    {
+      accessorKey: 'description',
+      header: 'Descrizione',
+      cell: ({ row }) => (
+        <span className="text-sm">{row.original.description || '-'}</span>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: 'Stato',
+      cell: ({ row }) => getStatusBadge(row.original.status),
+    },
+    {
+      accessorKey: 'assignedTo',
+      header: 'Operatore',
+      cell: ({ row }) => (
+        <span className="text-sm font-medium">{row.original.assignedTo || '-'}</span>
+      ),
+    },
+    {
+      accessorKey: 'totalItems',
+      header: 'Items',
+      cell: ({ row }) => (
+        <div className="text-center">
+          <span className="font-medium">{row.original.totalItems || 0}</span>
+          {row.original.completedItems !== undefined && (
+            <span className="text-xs text-gray-500 ml-1">
+              ({row.original.completedItems} completati)
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Azioni',
+      cell: ({ row }) => (
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRowClick(row.original);
+            }}
+            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            title="Visualizza"
+          >
+            <EyeIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={(e) => handleEditList(row.original, e)}
+            className="p-1 text-yellow-600 hover:bg-yellow-50 rounded transition-colors"
+            title="Modifica"
+          >
+            <PencilIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={(e) => handleDeleteList(row.original, e)}
+            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+            title="Elimina"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loading size="lg" text="Caricamento liste..." />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 space-y-4">
+        <div className="text-red-600 text-lg font-semibold">
+          Errore nel caricamento delle liste
+        </div>
+        <div className="text-gray-600">{error?.message || 'Errore sconosciuto'}</div>
+        <Button onClick={() => refetch()}>Ricarica la pagina</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestione Liste</h1>
+          <p className="text-gray-600 mt-1">
+            {totalCount} liste totali • Pagina {page + 1} • {lists.length} visualizzate
+          </p>
+        </div>
+        <Button variant="primary" onClick={() => setShowCreateWizard(true)}>
+          <PlusIcon className="w-5 h-5 mr-2" />
+          Crea Nuova Lista
+        </Button>
+      </div>
+
+      {/* Enhanced Filters */}
+      <ListFilters onApplyFilters={handleApplyFilters} initialFilters={filters} />
+
+      {/* Lists Table */}
+      <Card padding="none">
+        <div className="p-6">
+          <Table
+            data={lists}
+            columns={columns}
+            pageSize={pageSize}
+            searchable
+            onRowClick={handleRowClick}
+          />
+        </div>
+      </Card>
+
+      {/* Pagination Info */}
+      {totalCount > pageSize && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            Mostrando {page * pageSize + 1} - {Math.min((page + 1) * pageSize, totalCount)} di{' '}
+            {totalCount}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              Precedente
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setPage(p => p + 1)}
+              disabled={(page + 1) * pageSize >= totalCount}
+            >
+              Successivo
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Create List Wizard */}
+      <CreateListWizard
+        isOpen={showCreateWizard}
+        onClose={() => setShowCreateWizard(false)}
+        onConfirm={handleCreateList}
+      />
+    </div>
+  );
+}
+
+export default ListManagementPage;

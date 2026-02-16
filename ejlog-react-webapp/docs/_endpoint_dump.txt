@@ -1,0 +1,461 @@
+ROUTER ENDPOINTS
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\adapter-routes.js
+  GET /version
+  GET /items
+  GET /items/:id
+  GET /items/bar-code/:code
+  POST /items/:id/pick
+  POST /items/:id/put
+  POST /items/:id/check
+  GET /items/:id/is-handled-by-lot
+  GET /items/:id/is-handled-by-serial-number
+  GET /items/:id/is-handled-by-expire-date
+  PUT /items/:itemId/average-weight
+  POST /items/print-item
+  GET /item-lists
+  GET /item-lists/:id
+  GET /item-lists/:id/num
+  GET /item-lists/:id/rows
+  POST /item-lists/:id/execute
+  POST /item-lists/execute-num
+  POST /item-lists/:id/suspend
+  POST /item-lists/:id/terminate
+  GET /areas
+  GET /areas/:id
+  GET /compartments
+  GET /compartments/:id
+  GET /machines
+  GET /machines/:id
+  PUT /machines/:id/status
+  GET /loading-units
+  GET /loading-units/:id
+  POST /loading-units
+  GET /users
+  POST /users/authenticate
+  POST /users/authenticate-token
+  GET /barcodes/rules
+  GET /barcodes/rules/:id
+  GET /printers
+  GET /printers/:id
+  POST /images/upload
+  GET /images/:filename
+  GET /put-to-light
+  POST /put-to-light
+  GET /products
+  GET /products/:id
+  GET /mission-operations
+  PUT /mission-operations/:id/status
+  GET /destination-groups
+  GET /destination-groups/:id
+  GET /debug/database
+  POST /debug/reset
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\ai-assistant.js
+  POST /chat
+  GET /context
+  POST /command
+  GET /suggestions
+  POST /troubleshoot
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\ai-config.js
+  GET /
+  POST /api-key
+  POST /test
+  PUT /settings
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\analytics.js
+  GET /picking
+  GET /summary
+  GET /export/excel
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\audit-log.js
+  GET /
+  GET /:id
+  POST /
+  GET /stats/summary
+  DELETE /cleanup
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\auth-enhanced.js
+  POST /login
+  POST /logout
+  POST /verify
+  GET /password-hint
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\auth-refresh.js
+  POST /refresh
+  POST /logout
+  GET /revoked-count
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\auth.js
+  POST /login
+  POST /logout
+  GET /check
+  GET /password-hint
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\barcode-rules.js
+  GET /rules
+  GET /rules/:id
+  POST /rules
+  PUT /rules/:id
+  DELETE /rules/:id
+  POST /parse
+  POST /validate
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\barcode-scanner.js
+  POST /scan
+  GET /history
+  POST /validate
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\compartments.js
+  GET /loading-units/:id/compartments
+  POST /loading-units/:id/compartments
+  GET /:id
+  PUT /:id
+  DELETE /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\custom-reports.js
+  GET /
+  GET /categories
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+  POST /:id/execute
+  POST /execute-custom
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\dashboard-config.js
+  GET /config/:userId
+  PUT /config/:userId
+  DELETE /config/:userId
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\data-export-import.js
+  POST /export
+  POST /import
+  GET /jobs
+  GET /jobs/:id
+  GET /templates/:entity
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\destination-groups.js
+  GET /
+  GET /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\events.js
+  GET /
+  GET /stats
+  GET /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\groups.js
+  GET /
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\item-lists-enhanced.js
+  GET /
+  GET /:id
+  POST /
+  PUT /:id
+  GET /:id/dependencies
+  DELETE /all
+  DELETE /:id
+  POST /:id/execute
+  POST /:id/pause
+  POST /:id/resume
+  POST /:id/complete
+  POST /:id/cancel
+  POST /:id/copy
+  GET /:id/items
+  POST /:id/items
+  PUT /:listId/items/:itemId
+  DELETE /:listId/items/:itemId
+  GET /:id/history
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\item-lists.js
+  GET /next-number/:type
+  GET /stats
+  GET /
+  GET /:code/num
+  GET /:id
+  GET /:id/items
+  PUT /:id
+  POST /
+  POST /:id/rows
+  POST /:id/reserve
+  POST /:id/rereserve
+  POST /:id/waiting
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\items.js
+  GET /debug/count
+  GET /
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+  GET /:id/stock
+  GET /:id/images
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\lists-safe.js
+  POST /
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\lists.js
+  GET /
+  GET /destination-groups
+  GET /ptl/container-types
+  POST /priority
+  POST /destination
+  POST /sequence
+  POST /reactivate-rows
+  POST /:id/revive
+  POST /ptl/enable
+  POST /ptl/disable
+  POST /ptl/reset
+  POST /ptl/resend
+  POST /ptl/container-type
+  POST /merge
+  POST /:id/unprocessable
+  POST /:id/save-as-template
+  GET /:id/logs
+  POST /delete-all
+  GET /:listNumber
+  PUT /:listNumber/waiting
+  POST /:id/terminate
+  PUT /:id/book
+  PUT /:id/execute
+  POST /:id/duplicate
+  GET /:id/operations/warehouse
+  GET /:id/operations/area
+  GET /:id/reservations
+  GET /:id/movements
+  POST /item-lists
+  POST /item-lists/:listId/rows
+  POST /:id/reserve
+  POST /:id/rereserve
+  POST /:id/waiting
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\loading-units-new.js
+  GET /
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+  GET /:id/compartments
+  POST /:id/compartments
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\loading-units.js
+  GET /
+  GET /:id
+  GET /:id/compartments
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\locations.js
+  GET /
+  GET /:id
+  GET /:id/udcs
+  POST /:id/block
+  POST /:id/unblock
+  GET /:id/movements
+  GET /:id/statistics
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\login-history.js
+  GET /
+  GET /stats
+  POST /
+  DELETE /old
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\machines.js
+  GET /
+  GET /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\menu.js
+  GET /
+  GET /all
+  GET /permissions
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\missions.js
+  GET /
+  GET /stats
+  GET /active
+  GET /completed
+  GET /by-type/:type
+  GET /:id
+  GET /queue/list
+  GET /history/list
+  GET /statistics/summary
+  POST /
+  PUT /:id/abort
+  DELETE /queue/:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\notifications.js
+  GET /
+  GET /unread-count
+  PUT /:id/read
+  PUT /mark-all-read
+  GET /preferences/:userId
+  PUT /preferences/:userId
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\operations.js
+  GET /
+  GET /:id
+  GET /:id/aggregate
+  GET /by-params
+  POST /:id/execute
+  POST /:id/complete
+  POST /:id/suspend
+  POST /send-id
+  GET /reasons
+  GET /available-orders
+  GET /extra-combo
+  POST /
+  DELETE /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\ppc-installation.js
+  GET /ip-manager
+  PUT /ip-manager
+  GET /devices
+  GET /bay-device-io/:bayNumber
+  GET /cells
+  GET /cells/heights
+  GET /calibration/vertical-offset
+  POST /calibration/vertical-offset
+  GET /calibration/horizontal-offset
+  GET /calibration/weight
+  GET /trajectories/:type
+  PUT /trajectories/:type
+  GET /sensors
+  GET /sensors/status
+  GET /parameters
+  PUT /parameters
+  GET /warehouse
+  GET /sensitive-alarm
+  PUT /sensitive-alarm
+  GET /machine/barcode
+  GET /machine/serial-number
+  GET /machine/passwords
+  GET /accessories/:type
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\ptl-config.js
+  GET /
+  PUT /
+  GET /:category
+  POST /reset
+  GET /export/json
+  POST /import
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\ptl.js
+  GET /devices
+  GET /devices/:id
+  POST /devices
+  POST /light-up
+  POST /confirm
+  POST /cancel
+  GET /events
+  POST /ping
+  GET /stats
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\report-scheduler.js
+  GET /schedules
+  GET /schedules/:id
+  POST /schedules
+  PUT /schedules/:id
+  DELETE /schedules/:id
+  POST /schedules/:id/execute
+  GET /executions/:scheduleId
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\scheduler-config.js
+  GET /
+  PUT /
+  POST /reset
+  GET /export/json
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\scheduler-logics.js
+  GET /
+  PUT /
+  PUT /batch
+  POST /refresh
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\scheduler-management.js
+  GET /status
+  GET /summary
+  GET /
+  GET /:id
+  POST /
+  PATCH /:id
+  DELETE /:id
+  POST /:id/execute
+  POST /:id/enable
+  POST /:id/disable
+  POST /:id/interrupt
+  POST /:id/clear-error
+  POST /batch/enable
+  GET /scheduler-ids
+  GET /health
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\scheduler-status.js
+  GET /
+  GET /prenotazioni
+  GET /errors
+  POST /enable/:id
+  POST /disable/:id
+  POST /clear-error/:id
+  GET /liste
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\scheduler.js
+  GET /status
+  GET /queue
+  GET /clients
+  POST /fetcher/start
+  POST /fetcher/pause
+  POST /fetcher/resume
+  POST /fetcher/force-cycle
+  POST /processor/start
+  POST /processor/pause
+  POST /processor/resume
+  POST /processor/force-cycle
+  POST /force-cycle
+  GET /coordinator/status
+  GET /coordinator/instances
+  GET /locks
+  POST /coordinator/cleanup-heartbeats
+  POST /locks/cleanup
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\stock-movements.js
+  GET /
+  GET /:id
+  GET /item/:itemId
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\stock.js
+  GET /
+  GET /Movements
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\udc.js
+  GET /
+  GET /:id
+  GET /:id/compartments
+  POST /:id/move
+  POST /:id/items
+  DELETE /:udcId/items/:itemId
+  POST /:id/sort
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\user-management.js
+  GET /
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+  GET /roles/list
+  POST /:id/reset-password
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\user-stats.js
+  GET /:userId
+  GET /:userId/performance
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\users.js
+  GET /
+  GET /search
+  GET /:id
+  POST /
+  PUT /:id
+  PUT /:id/password
+  DELETE /:id
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\routes\warehouses.js
+  GET /
+  GET /types
+  GET /statuses
+  GET /:id
+  POST /
+  PUT /:id
+  DELETE /:id
+  POST /:id/associate-area
+  POST /:id/enable
+  POST /:id/disable
+  POST /:id/format-descriptions
+  POST /:id/udc-renumber
+  POST /:id/udc-terra
+
+APP ENDPOINTS
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\adapter-server.js
+  GET /health
+  GET /api/adapter/config
+  PUT /api/adapter/config
+  GET /api/adapter/status
+  POST /api/adapter/test
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\adapter-standalone.js
+  GET /health
+  GET /health/live
+  GET /health/ready
+  GET /api/network-info
+  GET /api/version
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\api-server.js
+  GET /
+  GET /swagger-ui.html
+  GET /health
+  GET /websocket/stats
+  GET /debug/tables
+FILE: C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\server\api-server-https.js
+  GET /
+  GET /swagger-ui.html
+  GET /health
+  GET /ready
+  GET /websocket/stats
+  GET /debug/udc-structure
+  GET /debug/logoperazioni-structure
+  GET /debug/missionitraslo-structure
+  GET /debug/missionitraslobuffer-structure
+  GET /debug/logmissioni-structure
+  GET /debug/missions-overview
+  GET /debug/tables

@@ -1,0 +1,132 @@
+// ============================================================================
+// EJLOG WMS - Enhanced Lists Management Page - SIMPLE VERSION FOR DEBUG
+// ============================================================================
+
+import React from 'react';
+
+const ListManagementPageEnhancedSimple: React.FC = () => {
+  return (
+    <div className="flex h-screen bg-gray-100">
+      {/* LEFT SIDEBAR */}
+      <div className="w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Azioni</h2>
+
+        {/* Gruppo: Ricerca */}
+        <div className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            Ricerca
+          </h3>
+          <div className="space-y-1">
+            <button className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded">
+              Aggiorna (F5)
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded">
+              Pulisci (F6)
+            </button>
+          </div>
+        </div>
+
+        {/* Gruppo: Gestione */}
+        <div className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            Gestione
+          </h3>
+          <div className="space-y-1">
+            <button className="w-full flex items-center px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded">
+              Inserisci
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm text-blue-700 hover:bg-blue-50 rounded">
+              Modifica
+            </button>
+          </div>
+        </div>
+
+        {/* Gruppo: Gestione Stato */}
+        <div className="mb-4">
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            Gestione Stato
+          </h3>
+          <div className="space-y-1">
+            <button className="w-full flex items-center px-3 py-2 text-sm text-green-700 hover:bg-green-50 rounded">
+              Esegui
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm text-yellow-700 hover:bg-yellow-50 rounded">
+              Attesa
+            </button>
+            <button className="w-full flex items-center px-3 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded">
+              Termina
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gestione Liste</h1>
+            <p className="text-gray-600 mt-1">Versione Enhanced - Test</p>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-7 gap-4">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Totale</p>
+                <p className="text-2xl font-bold text-blue-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Picking</p>
+                <p className="text-2xl font-bold text-green-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Rifornimento</p>
+                <p className="text-2xl font-bold text-orange-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Inventario</p>
+                <p className="text-2xl font-bold text-purple-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Attesa</p>
+                <p className="text-2xl font-bold text-gray-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">In Corso</p>
+                <p className="text-2xl font-bold text-blue-600">0</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-600">Completate</p>
+                <p className="text-2xl font-bold text-green-600">0</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">Elenco Liste</h2>
+            <p className="text-gray-600">
+              La tabella delle liste sarà visualizzata qui.
+              Backend non disponibile, nessun dato da mostrare.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ListManagementPageEnhancedSimple;

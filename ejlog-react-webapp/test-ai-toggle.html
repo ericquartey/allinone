@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Toggle - EjLog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.disabled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test AI Toggle - localStorage</h1>
+
+    <div class="test-card">
+        <h2>Stato Attuale AI Assistant</h2>
+        <div id="currentStatus" class="status disabled">❌ Non configurato</div>
+        <pre id="settingsJson">Loading...</pre>
+    </div>
+
+    <div class="test-card">
+        <h2>Azioni Test</h2>
+        <button onclick="loadSettings()">🔄 Ricarica Stato</button>
+        <button onclick="toggleAI()">⚡ Toggle AI Assistant</button>
+        <button onclick="enableAI()">✅ Abilita AI</button>
+        <button onclick="disableAI()">❌ Disabilita AI</button>
+        <button onclick="resetSettings()">🗑️ Reset Completo</button>
+    </div>
+
+    <div class="test-card">
+        <h2>Log Operazioni</h2>
+        <pre id="log"></pre>
+    </div>
+
+    <script>
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+
+        function loadSettings() {
+            try {
+                const settingsStr = localStorage.getItem('ejlog_settings');
+                const settingsJson = document.getElementById('settingsJson');
+                const statusDiv = document.getElementById('currentStatus');
+
+                if (!settingsStr) {
+                    log('⚠️ Nessuna impostazione trovata in localStorage');
+                    settingsJson.textContent = 'Nessuna impostazione salvata';
+                    statusDiv.className = 'status disabled';
+                    statusDiv.textContent = '❌ AI Assistant: Non configurato';
+                    return null;
+                }
+
+                const settings = JSON.parse(settingsStr);
+                settingsJson.textContent = JSON.stringify(settings, null, 2);
+
+                const aiEnabled = settings.aiAssistant?.enabled || false;
+                statusDiv.className = aiEnabled ? 'status enabled' : 'status disabled';
+                statusDiv.textContent = aiEnabled ? '✅ AI Assistant: ATTIVO' : '❌ AI Assistant: DISATTIVO';
+
+                log(`✅ Impostazioni caricate - AI: ${aiEnabled ? 'ATTIVO' : 'DISATTIVO'}`);
+                return settings;
+            } catch (error) {
+                log(`❌ Errore caricamento: ${error.message}`);
+                return null;
+            }
+        }
+
+        function toggleAI() {
+            const settings = loadSettings();
+            if (!settings || !settings.aiAssistant) {
+                log('⚠️ Creo nuove impostazioni AI');
+                const newSettings = createDefaultSettings();
+                newSettings.aiAssistant.enabled = true;
+                saveSettings(newSettings);
+            } else {
+                settings.aiAssistant.enabled = !settings.aiAssistant.enabled;
+                saveSettings(settings);
+                log(`🔄 Toggle AI: ${settings.aiAssistant.enabled ? 'ATTIVATO' : 'DISATTIVATO'}`);
+            }
+            loadSettings();
+        }
+
+        function enableAI() {
+            const settings = loadSettings() || createDefaultSettings();
+            settings.aiAssistant.enabled = true;
+            saveSettings(settings);
+            log('✅ AI Assistant ABILITATO');
+            loadSettings();
+        }
+
+        function disableAI() {
+            const settings = loadSettings() || createDefaultSettings();
+            settings.aiAssistant.enabled = false;
+            saveSettings(settings);
+            log('❌ AI Assistant DISABILITATO');
+            loadSettings();
+        }
+
+        function saveSettings(settings) {
+            try {
+                localStorage.setItem('ejlog_settings', JSON.stringify(settings));
+                log('💾 Impostazioni salvate in localStorage');
+            } catch (error) {
+                log(`❌ Errore salvataggio: ${error.message}`);
+            }
+        }
+
+        function createDefaultSettings() {
+            return {
+                touchMode: false,
+                darkMode: false,
+                compactMode: false,
+                sidebarCollapsed: false,
+                enableNotifications: true,
+                soundEnabled: true,
+                itemsPerPage: 50,
+                autoRefresh: true,
+                refreshInterval: 30,
+                language: 'it',
+                dateFormat: 'DD/MM/YYYY',
+                timeFormat: '24h',
+                aiAssistant: {
+                    enabled: false,
+                    voiceEnabled: false,
+                    voiceOutput: true,
+                    autoTrigger: true,
+                    language: 'it',
+                    model: 'claude',
+                    contextDepth: 'standard',
+                }
+            };
+        }
+
+        function resetSettings() {
+            if (confirm('Sei sicuro di voler cancellare tutte le impostazioni?')) {
+                localStorage.removeItem('ejlog_settings');
+                log('🗑️ Impostazioni cancellate - ricarico...');
+                setTimeout(() => {
+                    loadSettings();
+                }, 500);
+            }
+        }
+
+        // Carica al load della pagina
+        window.addEventListener('load', () => {
+            log('🚀 Pagina di test caricata');
+            loadSettings();
+        });
+
+        // Monitora cambiamenti al localStorage da altre tab
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'ejlog_settings') {
+                log('🔔 Impostazioni modificate da altra tab/finestra');
+                loadSettings();
+            }
+        });
+    </script>
+</body>
+</html>

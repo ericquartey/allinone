@@ -1,0 +1,31 @@
+[
+  {
+    "timestamp": "2025-11-21T22:16:55.416Z",
+    "checks": [
+      {
+        "service": "React Dev Server",
+        "url": "http://localhost:3012",
+        "status": "healthy",
+        "httpStatus": 200,
+        "responseTime": "192ms",
+        "timestamp": "2025-11-21T22:16:55.642Z",
+        "corsHeaders": {
+          "access-control-allow-origin": "http://localhost:3012",
+          "access-control-allow-credentials": null
+        }
+      },
+      {
+        "service": "Java REST API",
+        "url": "http://localhost:7079/EjLogHostVertimag/Lists",
+        "status": "healthy",
+        "httpStatus": 400,
+        "responseTime": "57ms",
+        "timestamp": "2025-11-21T22:16:55.699Z",
+        "corsHeaders": {
+          "access-control-allow-origin": "http://localhost:3012",
+          "access-control-allow-credentials": "true"
+        }
+      }
+    ]
+  }
+]

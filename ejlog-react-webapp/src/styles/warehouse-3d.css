@@ -1,0 +1,401 @@
+/**
+ * Warehouse 3D Visualization - CSS
+ * Visualizzazione 3D isometrica del magazzino con animazioni real-time
+ */
+
+.warehouse-3d {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  margin-bottom: 24px;
+  animation: fadeInScale 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  border: 2px solid rgba(13, 110, 253, 0.3);
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Header */
+.warehouse-3d__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.warehouse-3d__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(13, 110, 253, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.warehouse-3d__status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warehouse-3d__badge {
+  padding: 8px 16px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: badgePulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.warehouse-3d__badge--active {
+  background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.6);
+}
+
+.warehouse-3d__badge--idle {
+  background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+  color: white;
+}
+
+.warehouse-3d__badge--error {
+  background: linear-gradient(135deg, #dc3545 0%, #e63946 100%);
+  color: white;
+  animation: errorShake 0.5s ease-in-out, badgePulse 2s ease-in-out infinite;
+  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.6);
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.03);
+    opacity: 0.95;
+  }
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+.warehouse-3d__mission-id {
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Canvas Container */
+.warehouse-3d__canvas-container {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(13, 110, 253, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.warehouse-3d__canvas-container::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(13, 110, 253, 0.1) 0%, transparent 70%);
+  animation: rotateBackground 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateBackground {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.warehouse-3d__canvas {
+  width: 100%;
+  height: auto;
+  min-height: 500px;
+  max-height: 600px;
+  border-radius: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Animazioni SVG */
+.elevator {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.elevator:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Info Pannello */
+.warehouse-3d__info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.warehouse-3d__info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.warehouse-3d__info-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.warehouse-3d__info-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.warehouse-3d__info-value--highlight {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0dcaf0;
+  text-shadow: 0 0 12px rgba(13, 202, 240, 0.6);
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(13, 202, 240, 0.6);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(13, 202, 240, 0.9);
+  }
+}
+
+/* Effetti particelle */
+@keyframes particleRise {
+  from {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .warehouse-3d {
+    padding: 20px;
+  }
+
+  .warehouse-3d__canvas {
+    min-height: 400px;
+    max-height: 500px;
+  }
+
+  .warehouse-3d__info {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .warehouse-3d {
+    padding: 16px;
+  }
+
+  .warehouse-3d__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .warehouse-3d__title {
+    font-size: 18px;
+  }
+
+  .warehouse-3d__badge {
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  .warehouse-3d__canvas {
+    min-height: 300px;
+    max-height: 400px;
+  }
+
+  .warehouse-3d__info {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .warehouse-3d__info-value {
+    font-size: 16px;
+  }
+
+  .warehouse-3d__info-value--highlight {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .warehouse-3d__canvas {
+    min-height: 250px;
+    max-height: 350px;
+  }
+
+  .warehouse-3d__canvas-container {
+    padding: 12px;
+  }
+}
+
+/* Aggiunta alla pagina Missions */
+.ppc-missions__visualization {
+  margin-bottom: 24px;
+  animation: slideInDown 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Indicatori movimento */
+.movement-indicator {
+  animation: moveIndicator 1.5s ease-in-out infinite;
+}
+
+@keyframes moveIndicator {
+  0%, 100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+}
+
+/* Effetto glow per elevatore attivo */
+@keyframes elevatorGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(13, 110, 253, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(13, 110, 253, 0.8));
+  }
+}
+
+/* Animazione caricamento */
+.warehouse-3d--loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+.warehouse-3d--loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin: -25px 0 0 -25px;
+  border: 5px solid rgba(13, 110, 253, 0.2);
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 100;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Effetto hover sulle celle */
+.warehouse-cell {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.warehouse-cell:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+/* Traccia percorso */
+.path-trace {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+  animation: drawPath 2s ease-in-out forwards;
+}
+
+@keyframes drawPath {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Effetto pulsante per baia target */
+.target-bay-indicator {
+  animation: bayPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes bayPulse {
+  0%, 100% {
+    opacity: 0.6;
+    r: 8;
+  }
+  50% {
+    opacity: 1;
+    r: 12;
+  }
+}

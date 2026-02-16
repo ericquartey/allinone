@@ -1,0 +1,207 @@
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  BellIcon,
+  UserCircleIcon,
+  ChevronDownIcon,
+  ArrowRightOnRectangleIcon,
+  Cog6ToothIcon,
+  UserIcon,
+  ShieldCheckIcon,
+} from '@heroicons/react/24/outline';
+import { useAuthStore } from '../../stores/authStore';
+import { useUnreadCount } from '../../hooks/useNotifications';
+import FerrettoLogo from '../brand/FerrettoLogo';
+
+function Header(): JSX.Element {
+  const navigate = useNavigate();
+  const { user, logout, getToken } = useAuthStore();
+  const [showUserMenu, setShowUserMenu] = useState<boolean>(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Extract real user data from JWT auth
+  const userName = user?.username || 'Utente';
+  const userFullName = user?.firstName && user?.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : user?.username || 'Utente';
+  const userRole = user?.accessLevel || 'VIEWER';
+  const isSuperuser = user?.accessLevel === 'ADMIN';
+
+  // Check if JWT authentication is active
+  const token = getToken();
+  const isJWTAuth = !!token;
+
+  // Role display mapping
+  const roleDisplayMap: Record<string, string> = {
+    'ADMIN': 'Amministratore',
+    'SUPERVISOR': 'Supervisore',
+    'OPERATOR': 'Operatore',
+    'VIEWER': 'Visualizzatore'
+  };
+  const roleDisplay = roleDisplayMap[userRole] || userRole;
+
+  // Get unread count from API
+  const { data: unreadCount = 0 } = useUnreadCount();
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async (): Promise<void> => {
+    try {
+      const { authService } = await import('../../services/api/auth');
+      await authService.logout();
+      logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force logout even if API fails
+      logout();
+      navigate('/login');
+    }
+  };
+
+  return (
+    <header className="h-16 bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-20 shadow-sm">
+      <div className="h-full flex items-center justify-between px-6">
+        {/* Left Section - Logo + Title */}
+        <div className="flex items-center gap-4">
+          <FerrettoLogo variant="full" size="sm" />
+          <div className="h-8 w-px bg-gray-300" aria-hidden="true"></div>
+          <div className="flex flex-col">
+            <h1 className="text-base font-semibold text-gray-900 leading-tight">
+              EJLOG WMS
+            </h1>
+            <span className="text-xs text-gray-500">
+              Warehouse Management System
+            </span>
+          </div>
+        </div>
+
+        {/* Right Section - Actions */}
+        <div className="flex items-center space-x-4">
+          {/* Notifications */}
+          <button
+            onClick={() => navigate('/notifications')}
+            className="relative p-2 text-gray-600 hover:text-ferretto-red hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label={`Notifiche${unreadCount > 0 ? ` (${unreadCount} non lette)` : ''}`}
+          >
+            <BellIcon className="w-6 h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-ferretto-red text-white text-xs rounded-full flex items-center justify-center font-bold">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* User Menu */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <UserCircleIcon className="w-8 h-8 text-gray-600" />
+              <div className="text-left">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-gray-900">
+                    {userFullName}
+                  </p>
+                  {isSuperuser && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 border border-yellow-300">
+                      <ShieldCheckIcon className="h-3 w-3 text-yellow-700" />
+                      <span className="text-[10px] font-semibold text-yellow-700">SUPER</span>
+                    </div>
+                  )}
+                  {isJWTAuth && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 border border-green-300">
+                      <svg className="h-3 w-3 text-green-700" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-[10px] font-semibold text-green-700">JWT</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">
+                  {roleDisplay}
+                </p>
+              </div>
+              <ChevronDownIcon className="w-4 h-4 text-gray-600" />
+            </button>
+
+            {/* User Dropdown */}
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                <div className="px-4 py-3 border-b border-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {userFullName}
+                    </p>
+                    {isSuperuser && (
+                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-yellow-100 border border-yellow-300">
+                        <ShieldCheckIcon className="h-3 w-3 text-yellow-700" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {user?.email || `${userName}@ferretto.it`}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {roleDisplay}
+                  </p>
+                  {isJWTAuth && (
+                    <div className="mt-2 flex items-center gap-2 px-2 py-1.5 rounded bg-green-50 border border-green-200">
+                      <svg className="h-4 w-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-[11px] font-semibold text-green-700">Autenticazione JWT</p>
+                        <p className="text-[10px] text-green-600">Token attivo</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="py-2">
+                  <button
+                    onClick={() => { setShowUserMenu(false); navigate('/profile'); }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    <span>Profilo</span>
+                  </button>
+                  <button
+                    onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-3"
+                  >
+                    <Cog6ToothIcon className="w-5 h-5" />
+                    <span>Impostazioni</span>
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-200 pt-2">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full px-4 py-2 text-left text-sm text-ferretto-red hover:bg-red-50 flex items-center space-x-3"
+                  >
+                    <ArrowRightOnRectangleIcon className="w-5 h-5" />
+                    <span>Esci</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header;

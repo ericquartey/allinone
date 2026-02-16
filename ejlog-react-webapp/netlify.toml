@@ -1,0 +1,167 @@
+# Netlify Configuration for EjLog WMS
+# Documentation: https://docs.netlify.com/configure-builds/file-based-configuration/
+
+# Build Settings
+[build]
+  # Directory with the deploy-ready HTML files and assets
+  publish = "dist"
+
+  # Command to build the site
+  command = "npm run build"
+
+  # Directory to run the build command in
+  base = ""
+
+# Build Environment Variables
+[build.environment]
+  # Node.js version
+  NODE_VERSION = "18.19.0"
+
+  # npm version (use latest)
+  NPM_VERSION = "10.2.4"
+
+  # Enable caching for faster builds
+  NODE_OPTIONS = "--max-old-space-size=4096"
+
+# Headers for all pages
+[[headers]]
+  # Apply to all routes
+  for = "/*"
+
+  [headers.values]
+    # Security Headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # Content Security Policy (CSP)
+    # Adjust based on your needs
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://browser.sentry-cdn.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      connect-src 'self' https://sentry.io https://*.sentry.io http://localhost:* ws://localhost:*;
+      frame-ancestors 'none';
+      base-uri 'self';
+      form-action 'self';
+    """
+
+    # Permissions Policy (formerly Feature-Policy)
+    Permissions-Policy = """
+      accelerometer=(),
+      camera=(),
+      geolocation=(),
+      gyroscope=(),
+      magnetometer=(),
+      microphone=(),
+      payment=(),
+      usb=()
+    """
+
+# Cache Control for static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    # Cache for 1 year (immutable files with hash in name)
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    # Cache JavaScript files for 1 year
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    # Cache CSS files for 1 year
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    # Don't cache the main HTML file
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# SPA Redirect Rules
+# This ensures that all routes fallback to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+  # Don't apply to actual files (assets, etc.)
+  conditions = {Role = ["user"]}
+
+# API Proxy (if needed)
+# Uncomment and configure if you need to proxy API requests
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-api-domain.com/api/:splat"
+#   status = 200
+#   force = true
+#   headers = {X-From = "Netlify"}
+
+# Custom 404 Page (optional)
+# [[redirects]]
+#   from = "/404"
+#   to = "/404.html"
+#   status = 404
+
+# Deploy Previews and Branch Deploys
+[context.deploy-preview]
+  command = "npm run build"
+
+[context.branch-deploy]
+  command = "npm run build"
+
+# Production Context
+[context.production]
+  command = "npm run build"
+
+  [context.production.environment]
+    NODE_ENV = "production"
+
+# Plugin Configuration (optional)
+# Uncomment to enable plugins
+
+# Lighthouse Plugin - Automated performance testing
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
+#
+#   [plugins.inputs]
+#     output_path = "reports/lighthouse.html"
+
+# Sitemap Plugin - Automatically generate sitemap
+# [[plugins]]
+#   package = "@netlify/plugin-sitemap"
+
+# Form Submissions (if using Netlify Forms)
+# [build.processing]
+#   skip_processing = false
+# [build.processing.css]
+#   bundle = true
+#   minify = true
+# [build.processing.js]
+#   bundle = true
+#   minify = true
+# [build.processing.html]
+#   pretty_urls = true
+# [build.processing.images]
+#   compress = true
+
+# Functions (if using Netlify Functions)
+# [functions]
+#   directory = "netlify/functions"
+
+# Dev Server Settings (for netlify dev)
+[dev]
+  command = "npm run dev"
+  port = 3001
+  targetPort = 3001
+  publish = "dist"
+  autoLaunch = true

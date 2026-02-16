@@ -1,0 +1,517 @@
+{
+  "headings": [
+    {
+      "tag": "h1",
+      "text": "EJLOG WMS",
+      "classes": "text-base font-semibold text-gray-900 leading-tight",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h1",
+      "text": "Gestione Liste",
+      "classes": "text-2xl font-heading font-bold",
+      "hasNavLink": false
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "classes": "relative p-2 text-gray-600 hover:text-ferretto-red hover:bg-gray-100 rounded-lg transition-colors",
+      "type": null,
+      "ariaLabel": "Notifiche",
+      "hasIcon": true
+    },
+    {
+      "text": "UtenteVisualizzatore",
+      "classes": "flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "absolute -right-3 top-20 bg-ferretto-red text-white rounded-full p-1.5 hover:bg-ferretto-red-dark transition-colors shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-ferretto-red-light",
+      "type": null,
+      "ariaLabel": "Comprimi menu",
+      "hasIcon": true
+    },
+    {
+      "text": "Operazioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative bg-gray-700 text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "RF Operations",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "I/ML Features",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Magazzino",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Spedizioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Configurazione",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "AggiornaF5",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "PulisciF6",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Inserisci",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Modifica",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Prenota",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Riprenta",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Esegui",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 border border-success rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Attesa",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-warning/20 hover:bg-warning/30 border border-warning rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Termina",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-info hover:bg-info/90 border border-info rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Inesedibili",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-ferretto-red hover:bg-ferretto-red-dark border border-ferretto-red-dark rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Abilita PTL",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 border border-success rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Disabilita PTL",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-ferretto-red hover:bg-ferretto-red-dark border border-ferretto-red-dark rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Reset PTL",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Re-invia PTL",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto disabled:opacity-50 disabled:cursor-not-allowed",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Impostazioni",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-red/10 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Uscita",
+      "classes": "w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-ferretto-dark bg-white hover:bg-ferretto-gray-200 border border-ferretto-gray-300 rounded-ferretto shadow-sm transition-all duration-200 hover:shadow-ferretto",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Cerca",
+      "classes": "btn-primary w-full",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "2Prelievo",
+      "classes": "flex items-center gap-2 px-3 py-2 rounded-ferretto transition-all duration-200 hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "1Refilling",
+      "classes": "flex items-center gap-2 px-3 py-2 rounded-ferretto transition-all duration-200 hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "1Visione",
+      "classes": "flex items-center gap-2 px-3 py-2 rounded-ferretto transition-all duration-200 hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "1Inventario",
+      "classes": "flex items-center gap-2 px-3 py-2 rounded-ferretto transition-all duration-200 hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Single",
+      "classes": "px-4 py-2 text-sm font-medium transition-all duration-200 bg-white text-ferretto-dark hover:bg-ferretto-gray-100",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Tutti",
+      "classes": "px-4 py-2 text-sm font-medium transition-all duration-200 bg-ferretto-red text-white",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "In Attesa2",
+      "classes": "flex items-center gap-2 px-4 py-2 rounded-ferretto shadow-sm transition-all duration-200 bg-warning/20 border-2 border-warning hover:bg-warning/30",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "In Esecuzione1",
+      "classes": "flex items-center gap-2 px-4 py-2 rounded-ferretto shadow-sm transition-all duration-200 bg-success/20 border-2 border-success hover:bg-success/30",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Terminate1",
+      "classes": "flex items-center gap-2 px-4 py-2 rounded-ferretto shadow-sm transition-all duration-200 bg-info/20 border-2 border-info hover:bg-info/30",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "NLocazione/Pil",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "NumLista",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "RifLista",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Area",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "GruppoDestinazione",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Priorità",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "SequenzaLancio",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Tipo Lista",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Stato Lista",
+      "classes": "flex items-center gap-1 text-xs font-heading font-bold text-ferretto-dark uppercase tracking-wider hover:text-ferretto-red transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Termina",
+      "classes": "px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Attesa",
+      "classes": "px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Termina",
+      "classes": "px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Termina",
+      "classes": "px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Operazioni per magazzino",
+      "classes": "flex items-center gap-2 px-6 py-3 text-sm font-medium border-r border-ferretto-gray-300 transition-all duration-200 text-ferretto-dark hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Righe lista",
+      "classes": "flex items-center gap-2 px-6 py-3 text-sm font-medium border-r border-ferretto-gray-300 transition-all duration-200 bg-white text-ferretto-red border-b-4 border-b-ferretto-red",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Prenotazioni",
+      "classes": "flex items-center gap-2 px-6 py-3 text-sm font-medium border-r border-ferretto-gray-300 transition-all duration-200 text-ferretto-dark hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Movimenti",
+      "classes": "flex items-center gap-2 px-6 py-3 text-sm font-medium border-r border-ferretto-gray-300 transition-all duration-200 text-ferretto-dark hover:bg-ferretto-gray-200",
+      "type": "button",
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "tsqd-open-btn",
+      "type": "button",
+      "ariaLabel": "Open Tanstack query devtools",
+      "hasIcon": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Dashboard",
+      "href": "/",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Picking RF",
+      "href": "/rf/picking",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Putaway RF",
+      "href": "/rf/putaway",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Inventario RF",
+      "href": "/rf/inventory",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick Demo",
+      "href": "/voice-pick-demo",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick",
+      "href": "/voice-pick",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Macchine",
+      "href": "/machines",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Allarmi",
+      "href": "/alarms",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Log Eventi",
+      "href": "/event-logs",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Report",
+      "href": "/reports",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    }
+  ],
+  "cards": [],
+  "tables": [
+    {
+      "headers": [
+        "NLocazione/Pil",
+        "NumLista",
+        "RifLista",
+        "Area",
+        "GruppoDestinazione",
+        "Priorità",
+        "SequenzaLancio",
+        "Progresso",
+        "Tipo Lista",
+        "Stato Lista",
+        "Azioni"
+      ],
+      "rowCount": 4,
+      "classes": "table",
+      "hasCheckbox": false
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "placeholder": "Cerca...",
+      "name": null,
+      "classes": "w-full pl-9 pr-8 py-2 bg-gray-700 text-gray-100 text-sm rounded-lg border border-gray-600 focus:outline-none focus:border-ferretto-red focus:ring-1 focus:ring-ferretto-red transition-colors",
+      "ariaLabel": null
+    },
+    {
+      "type": "date",
+      "placeholder": null,
+      "name": null,
+      "classes": "input pr-10",
+      "ariaLabel": null
+    },
+    {
+      "type": "date",
+      "placeholder": null,
+      "name": null,
+      "classes": "input pr-10",
+      "ariaLabel": null
+    },
+    {
+      "type": "text",
+      "placeholder": "Cerca per codice...",
+      "name": null,
+      "classes": "input pr-10",
+      "ariaLabel": null
+    },
+    {
+      "type": "text",
+      "placeholder": "Cerca per ID lista...",
+      "name": null,
+      "classes": "input pr-10",
+      "ariaLabel": null
+    }
+  ],
+  "muiComponents": [],
+  "dataTestIds": [
+    {
+      "testId": "lists-sidebar",
+      "tag": "div",
+      "text": "RICERCAAggiornaF5PulisciF6GESTIONEInserisciModific"
+    }
+  ]
+}

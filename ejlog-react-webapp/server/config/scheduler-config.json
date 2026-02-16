@@ -1,0 +1,52 @@
+{
+  "scheduler": {
+    "enabled": true,
+    "fetcher": {
+      "enabled": true,
+      "intervalMs": 5000,
+      "batchSize": 10,
+      "autoStart": true
+    },
+    "processor": {
+      "enabled": true,
+      "workers": 3,
+      "maxRetries": 3,
+      "retryDelayMs": 2000,
+      "autoStart": true
+    },
+    "prenotatori": {
+      "PICKING": {
+        "className": "PickingPrenotatore",
+        "priority": 10,
+        "incrementale": false
+      },
+      "REFILLING": {
+        "className": "RefillingPrenotatore",
+        "priority": 8,
+        "incrementale": true
+      },
+      "INVENTARIO": {
+        "className": "InventarioPrenotatore",
+        "priority": 5,
+        "incrementale": false
+      }
+    },
+    "websocket": {
+      "enabled": true,
+      "port": 3077,
+      "path": "/ws/scheduler"
+    },
+    "coordinator": {
+      "heartbeatIntervalMs": 5000,
+      "heartbeatTimeoutMs": 15000,
+      "mode": "AUTO",
+      "instanceId": null
+    },
+    "locks": {
+      "lockTimeoutMs": 5000,
+      "lockScope": "Session"
+    },
+    "autoStart": true
+  }
+}
+

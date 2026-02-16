@@ -1,0 +1,971 @@
+{
+  "headings": [
+    {
+      "tag": "h1",
+      "text": "EJLOG WMS",
+      "classes": "text-base font-semibold text-gray-900 leading-tight",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h1",
+      "text": "Gestione Articoli",
+      "classes": "text-3xl font-bold text-gray-900",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Tutti i Prodotti (179)",
+      "classes": "text-lg font-semibold text-gray-900 flex items-center gap-2",
+      "hasNavLink": false
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "classes": "relative p-2 text-gray-600 hover:text-ferretto-red hover:bg-gray-100 rounded-lg transition-colors",
+      "type": null,
+      "ariaLabel": "Notifiche",
+      "hasIcon": true
+    },
+    {
+      "text": "UtenteVisualizzatore",
+      "classes": "flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "absolute -right-3 top-20 bg-ferretto-red text-white rounded-full p-1.5 hover:bg-ferretto-red-dark transition-colors shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-ferretto-red-light",
+      "type": null,
+      "ariaLabel": "Comprimi menu",
+      "hasIcon": true
+    },
+    {
+      "text": "Operazioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "RF Operations",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "I/ML Features",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Magazzino",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative bg-gray-700 text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Spedizioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Configurazione",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Nascondi Galleria",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-4 py-2.5 text-sm",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Filtri",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-4 py-2.5 text-sm",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Nuovo Articolo",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-ferretto-red text-white hover:bg-ferretto-red-dark hover:shadow-ferretto-md focus:ring-ferretto-red px-4 py-2.5 text-sm",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Cerca",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-ferretto-red text-white hover:bg-ferretto-red-dark hover:shadow-ferretto-md focus:ring-ferretto-red px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "Esporta CSV",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "inline-flex items-center justify-center gap-2 font-medium rounded-ferretto transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none active:scale-95 bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-300 px-3 py-1.5 text-xs",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "tsqd-open-btn",
+      "type": "button",
+      "ariaLabel": "Open Tanstack query devtools",
+      "hasIcon": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Dashboard",
+      "href": "/",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Picking RF",
+      "href": "/rf/picking",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Putaway RF",
+      "href": "/rf/putaway",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Inventario RF",
+      "href": "/rf/inventory",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick Demo",
+      "href": "/voice-pick-demo",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick",
+      "href": "/voice-pick",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Macchine",
+      "href": "/machines",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Allarmi",
+      "href": "/alarms",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Log Eventi",
+      "href": "/event-logs",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Report",
+      "href": "/reports",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    }
+  ],
+  "cards": [],
+  "tables": [
+    {
+      "headers": [
+        "",
+        "Codice",
+        "Descrizione",
+        "Categoria",
+        "UM",
+        "Gestione",
+        "Scorta Min",
+        "Giacenza",
+        "Info",
+        "Azioni"
+      ],
+      "rowCount": 25,
+      "classes": "min-w-full divide-y divide-gray-200",
+      "hasCheckbox": true
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "placeholder": "Cerca...",
+      "name": null,
+      "classes": "w-full pl-9 pr-8 py-2 bg-gray-700 text-gray-100 text-sm rounded-lg border border-gray-600 focus:outline-none focus:border-ferretto-red focus:ring-1 focus:ring-ferretto-red transition-colors",
+      "ariaLabel": null
+    },
+    {
+      "type": "text",
+      "placeholder": "Cerca per codice, descrizione o barcode...",
+      "name": null,
+      "classes": "block w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ferrRed focus:border-transparent ",
+      "ariaLabel": null
+    },
+    {
+      "type": null,
+      "placeholder": "Cerca per codice o descrizione...",
+      "name": null,
+      "classes": "block w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-ferrRed focus:border-transparent ",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    },
+    {
+      "type": "checkbox",
+      "placeholder": null,
+      "name": null,
+      "classes": "w-4 h-4 text-ferretto-red bg-gray-100 border-gray-300 rounded focus:ring-ferretto-red",
+      "ariaLabel": null
+    }
+  ],
+  "muiComponents": [],
+  "dataTestIds": []
+}

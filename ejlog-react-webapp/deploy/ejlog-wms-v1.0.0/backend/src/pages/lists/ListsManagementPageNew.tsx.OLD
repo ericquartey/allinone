@@ -1,0 +1,677 @@
+// ============================================================================
+// EJLOG WMS - Lists Management Page (CRUD Completo)
+// Gestione completa liste con tutte le funzionalità CRUD
+// ============================================================================
+
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../components/shared/Card';
+import Button from '../../components/shared/Button';
+import Badge from '../../components/shared/Badge';
+import Spinner from '../../components/shared/Spinner';
+import Modal from '../../components/shared/Modal';
+import Input from '../../components/shared/Input';
+import ListRowsManager from '../../components/lists/ListRowsManager';
+import {
+  useGetListsQuery,
+  useGetListByIdQuery,
+  useCreateListMutation,
+  useUpdateListMutation,
+  useDeleteListMutation,
+  useExecuteListMutation,
+  useSuspendListMutation,
+  useTerminateListMutation,
+} from '../../services/api/listsApi';
+import type { ItemList, ItemListType, ItemListStatus, ListFilters } from '../../types/models';
+import { Play, Pause, StopCircle, Edit, Trash2, Plus, Search, Download } from 'lucide-react';
+
+const ListsManagementPageNew: React.FC = () => {
+  const navigate = useNavigate();
+
+  // Filters state
+  const [filters, setFilters] = useState<ListFilters>({
+    type: undefined,
+    status: undefined,
+    search: '',
+  });
+
+  // Modals state
+  const [showCreateEditModal, setShowCreateEditModal] = useState(false);
+  const [editingList, setEditingList] = useState<ItemList | null>(null);
+  const [showRowsModal, setShowRowsModal] = useState(false);
+  const [selectedList, setSelectedList] = useState<ItemList | null>(null);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    tipoLista: 1, // PICKING
+    areaId: 1,
+    numLista: '',
+    rifLista: '',
+    descrizione: '',
+    priorita: 1,
+  });
+
+  // API Hooks
+  const { data: lists = [], isLoading, error, refetch } = useGetListsQuery(filters);
+  const [createList, { isLoading: isCreating }] = useCreateListMutation();
+  const [updateList, { isLoading: isUpdating }] = useUpdateListMutation();
+  const [deleteList, { isLoading: isDeleting }] = useDeleteListMutation();
+  const [executeList] = useExecuteListMutation();
+  const [suspendList] = useSuspendListMutation();
+  const [terminateList] = useTerminateListMutation();
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    return {
+      total: lists.length,
+      picking: lists.filter((l) => l.itemListType === 0).length,
+      stoccaggio: lists.filter((l) => l.itemListType === 1).length,
+      daEvadere: lists.filter((l) => l.status === 0).length,
+      inEsecuzione: lists.filter((l) => l.status === 1).length,
+      completate: lists.filter((l) => l.status === 3).length,
+    };
+  }, [lists]);
+
+  // Handlers
+  const handleOpenCreateModal = () => {
+    setEditingList(null);
+    setFormData({
+      tipoLista: 1,
+      areaId: 1,
+      numLista: '',
+      rifLista: '',
+      descrizione: '',
+      priorita: 1,
+    });
+    setShowCreateEditModal(true);
+  };
+
+  const handleOpenEditModal = (list: ItemList) => {
+    setEditingList(list);
+    setFormData({
+      tipoLista: list.itemListType,
+      areaId: 1, // TODO: get from list
+      numLista: list.code || '',
+      rifLista: '', // TODO: get from list
+      descrizione: list.description || '',
+      priorita: list.priority || 1,
+    });
+    setShowCreateEditModal(true);
+  };
+
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      if (editingList) {
+        // Update existing list
+        await updateList({
+          id: editingList.id,
+          ...formData,
+        }).unwrap();
+        alert('Lista aggiornata con successo!');
+      } else {
+        // Create new list
+        await createList(formData).unwrap();
+        alert('Lista creata con successo!');
+      }
+      setShowCreateEditModal(false);
+      refetch();
+    } catch (error) {
+      console.error('Error saving list:', error);
+      alert('Errore nel salvataggio della lista');
+    }
+  };
+
+  const handleDelete = async (list: ItemList) => {
+    if (!confirm(`Confermi l'eliminazione della lista "${list.code}"?`)) {
+      return;
+    }
+
+    try {
+      await deleteList(list.id).unwrap();
+      alert('Lista eliminata con successo!');
+      refetch();
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      alert('Errore nell\'eliminazione della lista');
+    }
+  };
+
+  const handleExecute = async (list: ItemList) => {
+    if (!confirm(`Confermi l'esecuzione della lista "${list.code}"?`)) {
+      return;
+    }
+
+    try {
+      await executeList({
+        id: list.id,
+        userName: 'admin', // TODO: get from auth context
+      }).unwrap();
+      alert('Lista eseguita con successo!');
+      refetch();
+    } catch (error) {
+      console.error('Error executing list:', error);
+      alert('Errore nell\'esecuzione della lista');
+    }
+  };
+
+  const handleSuspend = async (list: ItemList) => {
+    try {
+      await suspendList({
+        id: list.id,
+        userName: 'admin',
+      }).unwrap();
+      alert('Lista sospesa con successo!');
+      refetch();
+    } catch (error) {
+      console.error('Error suspending list:', error);
+      alert('Errore nella sospensione della lista');
+    }
+  };
+
+  const handleTerminate = async (list: ItemList) => {
+    if (!confirm(`Confermi la terminazione della lista "${list.code}"?`)) {
+      return;
+    }
+
+    try {
+      await terminateList(list.id).unwrap();
+      alert('Lista terminata con successo!');
+      refetch();
+    } catch (error) {
+      console.error('Error terminating list:', error);
+      alert('Errore nella terminazione della lista');
+    }
+  };
+
+  const handleChangeStatus = async (list: ItemList, newStatus: ItemListStatus) => {
+    // Validazione transizioni stato
+    const currentStatus = list.status;
+
+    // Definisci transizioni permesse
+    const allowedTransitions: Record<number, number[]> = {
+      0: [1, 4], // DA_EVADERE -> IN_ESECUZIONE, ANNULLATA
+      1: [2, 3], // IN_ESECUZIONE -> SOSPESA, COMPLETATA
+      2: [1, 4], // SOSPESA -> IN_ESECUZIONE, ANNULLATA
+      3: [], // COMPLETATA -> nessuna transizione
+      4: [0], // ANNULLATA -> DA_EVADERE (riattiva)
+      5: [0], // INEVADIBILE -> DA_EVADERE
+    };
+
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+      alert(`Transizione non permessa da ${getStatusLabel(currentStatus)} a ${getStatusLabel(newStatus)}`);
+      return;
+    }
+
+    if (!confirm(`Confermi il cambio stato da "${getStatusLabel(currentStatus)}" a "${getStatusLabel(newStatus)}"?`)) {
+      return;
+    }
+
+    try {
+      // Usa l'API appropriata in base allo stato target
+      if (newStatus === 1) {
+        // IN_ESECUZIONE
+        await executeList({ id: list.id, userName: 'admin' }).unwrap();
+      } else if (newStatus === 2) {
+        // SOSPESA
+        await suspendList({ id: list.id, userName: 'admin' }).unwrap();
+      } else if (newStatus === 3) {
+        // COMPLETATA
+        await terminateList(list.id).unwrap();
+      } else {
+        // Per altri stati usa UPDATE
+        await updateList({ id: list.id, statoLista: newStatus }).unwrap();
+      }
+
+      alert('Stato aggiornato con successo!');
+      refetch();
+    } catch (error) {
+      console.error('Error changing status:', error);
+      alert('Errore nel cambio stato');
+    }
+  };
+
+  const getStatusLabel = (status: ItemListStatus): string => {
+    const labels: Record<number, string> = {
+      0: 'Da Evadere',
+      1: 'In Esecuzione',
+      2: 'Sospesa',
+      3: 'Completata',
+      4: 'Annullata',
+      5: 'Inevadibile',
+    };
+    return labels[status] || 'Sconosciuto';
+  };
+
+  const handleViewRows = (list: ItemList) => {
+    setSelectedList(list);
+    setShowRowsModal(true);
+  };
+
+  // Helper functions
+  const getTypeLabel = (type: ItemListType): string => {
+    const labels: Record<number, string> = {
+      0: 'Picking',
+      1: 'Stoccaggio',
+      2: 'Inventario',
+      3: 'Trasferimento',
+      4: 'Rettifica',
+      5: 'Produzione',
+    };
+    return labels[type] || 'Sconosciuto';
+  };
+
+  const getStatusBadge = (status: ItemListStatus) => {
+    const badges: Record<number, { variant: 'success' | 'info' | 'warning' | 'secondary' | 'danger'; label: string }> = {
+      0: { variant: 'secondary', label: 'Da Evadere' },
+      1: { variant: 'info', label: 'In Esecuzione' },
+      2: { variant: 'warning', label: 'Sospesa' },
+      3: { variant: 'success', label: 'Completata' },
+      4: { variant: 'danger', label: 'Annullata' },
+      5: { variant: 'secondary', label: 'Inevadibile' },
+    };
+    const badge = badges[status] || { variant: 'secondary' as const, label: 'Sconosciuto' };
+    return <Badge variant={badge.variant}>{badge.label}</Badge>;
+  };
+
+  const calculateProgress = (list: ItemList): number => {
+    if (!list.totalRows || list.totalRows === 0) return 0;
+    return ((list.completedRows || 0) / list.totalRows) * 100;
+  };
+
+  if (isLoading && lists.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Gestione Liste</h1>
+          <p className="text-gray-600 mt-1">{lists.length} liste trovate</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="primary" onClick={handleOpenCreateModal} icon={<Plus className="w-4 h-4" />}>
+            Nuova Lista
+          </Button>
+          <Button variant="ghost" onClick={() => refetch()} disabled={isLoading}>
+            Aggiorna
+          </Button>
+        </div>
+      </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Card className="bg-red-50 border-l-4 border-red-500">
+          <p className="text-red-600">
+            Errore nel caricamento delle liste: {error.toString()}
+          </p>
+        </Card>
+      )}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Totale</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Picking</p>
+            <p className="text-3xl font-bold text-green-600">{stats.picking}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Stoccaggio</p>
+            <p className="text-3xl font-bold text-orange-600">{stats.stoccaggio}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Da Evadere</p>
+            <p className="text-3xl font-bold text-gray-600">{stats.daEvadere}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">In Esecuzione</p>
+            <p className="text-3xl font-bold text-blue-600">{stats.inEsecuzione}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Completate</p>
+            <p className="text-3xl font-bold text-purple-600">{stats.completate}</p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Cerca</label>
+            <Input
+              placeholder="Numero lista, riferimento..."
+              value={filters.search || ''}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              icon={<Search className="w-4 h-4" />}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tipo Lista</label>
+            <select
+              value={filters.type || ''}
+              onChange={(e) =>
+                setFilters({ ...filters, type: e.target.value ? Number(e.target.value) : undefined })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Tutti i tipi</option>
+              <option value="0">Picking</option>
+              <option value="1">Stoccaggio</option>
+              <option value="2">Inventario</option>
+              <option value="3">Trasferimento</option>
+              <option value="4">Rettifica</option>
+              <option value="5">Produzione</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Stato</label>
+            <select
+              value={filters.status || ''}
+              onChange={(e) =>
+                setFilters({ ...filters, status: e.target.value ? Number(e.target.value) : undefined })
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Tutti gli stati</option>
+              <option value="0">Da Evadere</option>
+              <option value="1">In Esecuzione</option>
+              <option value="2">Sospesa</option>
+              <option value="3">Completata</option>
+              <option value="4">Annullata</option>
+              <option value="5">Inevadibile</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setFilters({ type: undefined, status: undefined, search: '' })}
+          >
+            Reset Filtri
+          </Button>
+        </div>
+      </Card>
+
+      {/* Lists Table */}
+      <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Elenco Liste</h2>
+          <Button size="sm" variant="ghost" icon={<Download className="w-4 h-4" />}>
+            Esporta
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <Spinner size="lg" />
+          </div>
+        ) : lists.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg">Nessuna lista trovata</p>
+            <p className="text-sm mt-2">Prova a modificare i filtri di ricerca</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numero</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descrizione</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stato</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priorità</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Progresso</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Azioni</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {lists.map((list) => (
+                  <tr key={list.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {list.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        className="text-blue-600 hover:underline font-semibold"
+                        onClick={() => handleViewRows(list)}
+                      >
+                        {list.code}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{list.description || '-'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge variant="info">{getTypeLabel(list.itemListType)}</Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <select
+                        value={list.status}
+                        onChange={(e) => handleChangeStatus(list, Number(e.target.value) as ItemListStatus)}
+                        className={`px-3 py-1 border rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                          list.status === 0
+                            ? 'bg-gray-100 text-gray-800 border-gray-300'
+                            : list.status === 1
+                            ? 'bg-blue-100 text-blue-800 border-blue-300'
+                            : list.status === 2
+                            ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                            : list.status === 3
+                            ? 'bg-green-100 text-green-800 border-green-300'
+                            : list.status === 4
+                            ? 'bg-red-100 text-red-800 border-red-300'
+                            : 'bg-purple-100 text-purple-800 border-purple-300'
+                        }`}
+                        disabled={list.status === 3} // Disabilita se completata
+                      >
+                        <option value={0}>⚪ Da Evadere</option>
+                        <option value={1}>🔵 In Esecuzione</option>
+                        <option value={2}>🟡 Sospesa</option>
+                        <option value={3}>🟢 Completata</option>
+                        <option value={4}>🔴 Annullata</option>
+                        <option value={5}>🟣 Inevadibile</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {list.priority || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium w-12">
+                          {calculateProgress(list).toFixed(0)}%
+                        </span>
+                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${
+                              calculateProgress(list) === 100 ? 'bg-green-600' : 'bg-blue-600'
+                            }`}
+                            style={{ width: `${calculateProgress(list)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleExecute(list)}
+                          disabled={list.status === 1}
+                          title="Esegui"
+                        >
+                          <Play className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleSuspend(list)}
+                          disabled={list.status !== 1}
+                          title="Sospendi"
+                        >
+                          <Pause className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleTerminate(list)}
+                          disabled={list.status === 3}
+                          title="Termina"
+                        >
+                          <StopCircle className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleOpenEditModal(list)}
+                          title="Modifica"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(list)}
+                          disabled={list.status === 1}
+                          title="Elimina"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Create/Edit Modal */}
+      <Modal
+        isOpen={showCreateEditModal}
+        onClose={() => setShowCreateEditModal(false)}
+        title={editingList ? 'Modifica Lista' : 'Nuova Lista'}
+        size="lg"
+      >
+        <form onSubmit={handleSubmitForm} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipo Lista <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.tipoLista}
+                onChange={(e) => setFormData({ ...formData, tipoLista: Number(e.target.value) })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="0">Picking</option>
+                <option value="1">Stoccaggio</option>
+                <option value="2">Inventario</option>
+                <option value="3">Trasferimento</option>
+                <option value="4">Rettifica</option>
+                <option value="5">Produzione</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Area ID <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="number"
+                value={formData.areaId}
+                onChange={(e) => setFormData({ ...formData, areaId: Number(e.target.value) })}
+                required
+                min={1}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Numero Lista</label>
+              <Input
+                value={formData.numLista}
+                onChange={(e) => setFormData({ ...formData, numLista: e.target.value })}
+                placeholder="Lascia vuoto per auto-generazione"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Riferimento</label>
+              <Input
+                value={formData.rifLista}
+                onChange={(e) => setFormData({ ...formData, rifLista: e.target.value })}
+                placeholder="Riferimento esterno"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Descrizione</label>
+              <Input
+                value={formData.descrizione}
+                onChange={(e) => setFormData({ ...formData, descrizione: e.target.value })}
+                placeholder="Descrizione della lista"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Priorità</label>
+              <Input
+                type="number"
+                value={formData.priorita}
+                onChange={(e) => setFormData({ ...formData, priorita: Number(e.target.value) })}
+                min={1}
+                max={100}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button type="button" variant="ghost" onClick={() => setShowCreateEditModal(false)}>
+              Annulla
+            </Button>
+            <Button type="submit" variant="primary" disabled={isCreating || isUpdating}>
+              {isCreating || isUpdating ? 'Salvataggio...' : editingList ? 'Aggiorna' : 'Crea'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Rows Modal */}
+      <Modal
+        isOpen={showRowsModal}
+        onClose={() => setShowRowsModal(false)}
+        title={`Righe Lista - ${selectedList?.code}`}
+        size="xl"
+      >
+        {selectedList && <ListRowsManager listId={selectedList.id} readonly={selectedList.status === 3} />}
+      </Modal>
+    </div>
+  );
+};
+
+export default ListsManagementPageNew;

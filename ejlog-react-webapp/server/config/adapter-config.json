@@ -1,0 +1,8 @@
+{
+  "adapterPort": 9000,
+  "adapterHost": "localhost",
+  "adapterBaseUrl": "http://localhost:9000",
+  "enabled": true,
+  "healthCheckInterval": 30000,
+  "timeout": 10000
+}

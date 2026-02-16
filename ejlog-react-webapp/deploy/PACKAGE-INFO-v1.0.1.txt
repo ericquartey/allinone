@@ -1,0 +1,111 @@
+================================================================================
+    EjLog WMS v1.0.1 - PACKAGE INFO (con FIX Browser)
+================================================================================
+
+File:           ejlog-wms-v1.0.1-FIXED.zip
+Versione:       1.0.1
+Data creazione: 2025-12-24 00:38:50
+Dimensione:     10.9 MB
+MD5:            1f5e8126ae00dd4d1cd238509fc25a28
+
+================================================================================
+NOVITA' v1.0.1 (FIX Browser)
+================================================================================
+
+✅ FIX: Browser non carica (pagina bianca)
+   - Sostituito http-server con serve
+   - serve gestisce correttamente le React SPA
+
+✅ NUOVO: start-production-FIXED.bat
+   - Usa serve invece di http-server
+   - Migliore gestione routing React
+
+✅ NUOVO: start-production-debug.bat
+   - Diagnostica completa all'avvio
+   - Verifica prerequisiti
+   - Health check backend/frontend
+   - Log dettagliato
+
+✅ NUOVE GUIDE:
+   - QUICK-FIX-BROWSER.md    (soluzione rapida)
+   - TROUBLESHOOTING.md      (guida completa)
+   - LEGGIMI-IMPORTANTE.txt  (istruzioni immediate)
+
+================================================================================
+SCRIPT DISPONIBILI
+================================================================================
+
+CONSIGLIATI:
+  ✅ start-production-FIXED.bat  <- USA QUESTO
+  ✅ start-production-debug.bat  <- Per diagnostica
+  ✅ start-production-v2.bat     <- Uguale al FIXED
+
+DEPRECATI:
+  ⚠️  start-production.bat        <- Vecchio (può dare errori)
+
+================================================================================
+PROCEDURA INSTALLAZIONE
+================================================================================
+
+1. Estrai ejlog-wms-v1.0.1-FIXED.zip in una cartella
+
+2. Esegui: install.bat
+
+3. Esegui: start-production-FIXED.bat
+
+4. Attendi 15-20 secondi
+
+5. Se vedi pagina bianca, premi F5
+
+6. Login: admin / admin
+
+================================================================================
+CONTENUTO PACCHETTO
+================================================================================
+
+/backend/               Backend Node.js + Express
+  /server/              Server API
+  /node_modules/        Dipendenze (da installare)
+
+/frontend/              Frontend React build
+  /dist/                Build production
+    /assets/            JavaScript, CSS, immagini
+    index.html          Entry point
+
+/config/                Configurazione
+  .env                  Database config (SQL Server)
+
+/logs/                  Log applicazione
+/backups/               Backup database
+/scripts/               Script utility
+
+install.bat             Installazione dipendenze
+start-production-FIXED.bat    Avvio (CONSIGLIATO)
+start-production-debug.bat    Avvio con diagnostica
+start-production.bat    Avvio (deprecato)
+stop-all.bat            Stop tutti i server
+
+LEGGIMI-IMPORTANTE.txt  LEGGI PRIMA DI USARE!
+QUICK-FIX-BROWSER.md    Fix pagina bianca
+TROUBLESHOOTING.md      Guida problemi
+LEGGIMI.txt             Istruzioni base
+
+================================================================================
+REQUISITI SISTEMA
+================================================================================
+
+✓ Windows 10 o superiore
+✓ Node.js 18.x o 20.x
+✓ SQL Server (database promag)
+✓ Porte libere: 3000, 3077, 3079, 8080
+
+================================================================================
+SUPPORTO
+================================================================================
+
+Log errori:   logs/ejlog-wms.log
+Log avvio:    start-debug.log
+Guide:        TROUBLESHOOTING.md
+
+================================================================================
+

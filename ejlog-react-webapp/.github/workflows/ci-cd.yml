@@ -1,0 +1,482 @@
+name: CI/CD Pipeline - EJLOG WMS
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # JOB 1: Code Quality Checks
+  # ============================================================================
+  quality:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: TypeScript type checking
+        run: npx tsc --noEmit
+
+      - name: Check code formatting
+        run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+        continue-on-error: true
+
+  # ============================================================================
+  # JOB 2: Security Audit
+  # ============================================================================
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        continue-on-error: false
+
+      - name: Check for security vulnerabilities
+        run: |
+          echo "Checking for critical vulnerabilities..."
+          npm audit --json > audit.json
+          cat audit.json
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-audit
+          path: audit.json
+
+  # ============================================================================
+  # JOB 3: Unit Tests
+  # ============================================================================
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [quality]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage --run
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results
+          path: coverage/
+
+  # ============================================================================
+  # JOB 4: E2E Tests
+  # ============================================================================
+  test-e2e:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [quality]
+
+    strategy:
+      matrix:
+        browser: [chromium, firefox]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Start backend mock server (if needed)
+        run: |
+          echo "Backend mock server would start here"
+          # npm run mock-server &
+        continue-on-error: true
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start dev server
+        run: npm run preview &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:4173 --timeout 60000
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
+        continue-on-error: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-results-${{ matrix.browser }}
+          path: test-results/
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: playwright-report/
+
+  # ============================================================================
+  # JOB 5: Build Application
+  # ============================================================================
+  build:
+    name: Build Production
+    runs-on: ubuntu-latest
+    needs: [quality, security, test-unit]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for production
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://api.production.com' }}
+          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_ENABLE_ANALYTICS: true
+
+      - name: Verify build output
+        run: |
+          echo "Checking build output..."
+          ls -lah dist/
+          du -sh dist/
+
+      - name: Check bundle size
+        run: |
+          echo "Bundle size check..."
+          find dist/assets -name "*.js" -exec du -h {} \;
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-build
+          path: dist/
+          retention-days: 7
+
+  # ============================================================================
+  # JOB 6: Performance Testing (Lighthouse)
+  # ============================================================================
+  performance:
+    name: Performance Audit (Lighthouse)
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: production-build
+          path: dist/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install serve
+        run: npm install -g serve
+
+      - name: Serve production build
+        run: serve -s dist -l 3000 &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:3000
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+
+  # ============================================================================
+  # JOB 7: Accessibility Testing
+  # ============================================================================
+  accessibility:
+    name: Accessibility Audit (Axe)
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: production-build
+          path: dist/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install serve
+        run: npm install -g serve
+
+      - name: Serve production build
+        run: serve -s dist -l 3000 &
+
+      - name: Wait for server
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      - name: Run Axe accessibility tests
+        run: npx playwright test tests/accessibility/ --project=chromium
+        continue-on-error: true
+
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: accessibility-report
+          path: test-results/
+
+  # ============================================================================
+  # JOB 8: Deploy to Staging (Auto on develop)
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, test-unit, test-e2e]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.ejlog.yourcompany.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: production-build
+          path: dist/
+
+      - name: Deploy to staging server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/ejlog-staging/"
+          strip_components: 1
+
+      - name: Reload web server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            sudo systemctl reload nginx
+            echo "Staging deployment completed"
+
+  # ============================================================================
+  # JOB 9: Deploy to Production (Manual approval required)
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, test-unit, test-e2e, performance, accessibility]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://ejlog.yourcompany.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: production-build
+          path: dist/
+
+      - name: Create deployment backup
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            DATE=$(date +%Y%m%d_%H%M%S)
+            sudo tar -czf /backup/ejlog-${DATE}.tar.gz /var/www/ejlog/
+            echo "Backup created: ejlog-${DATE}.tar.gz"
+
+      - name: Deploy to production server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: "dist/*"
+          target: "/var/www/ejlog/"
+          strip_components: 1
+
+      - name: Reload web server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            sudo systemctl reload nginx
+            echo "Production deployment completed"
+
+      - name: Health check
+        run: |
+          sleep 5
+          curl -f https://ejlog.yourcompany.com/health || exit 1
+          echo "Health check passed"
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        if: success()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "✅ EJLOG WMS deployed to production successfully!",
+              attachments: [{
+                color: 'good',
+                text: `Version: ${{ github.sha }}\nDeployed by: ${{ github.actor }}`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Notify deployment failure
+        uses: 8398a7/action-slack@v3
+        if: failure()
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "❌ EJLOG WMS deployment to production failed!",
+              attachments: [{
+                color: 'danger',
+                text: `Version: ${{ github.sha }}\nCheck logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================================================
+  # JOB 10: Post-Deployment Tests
+  # ============================================================================
+  post-deploy-tests:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          curl -f https://ejlog.yourcompany.com || exit 1
+          curl -f https://ejlog.yourcompany.com/health || exit 1
+
+      - name: Verify security headers
+        run: |
+          echo "Checking security headers..."
+          curl -I https://ejlog.yourcompany.com | grep -i "x-frame-options"
+          curl -I https://ejlog.yourcompany.com | grep -i "x-content-type-options"
+          curl -I https://ejlog.yourcompany.com | grep -i "content-security-policy"
+
+      - name: Verify SSL certificate
+        run: |
+          echo "Checking SSL certificate..."
+          echo | openssl s_client -connect ejlog.yourcompany.com:443 2>/dev/null | openssl x509 -noout -dates

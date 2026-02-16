@@ -1,0 +1,11 @@
+EjLog WMS
+Version: 1.0.0
+Build Date: 2025-12-23
+Environment: Production
+
+Components:
+- Frontend: React 18 + Vite
+- Backend: Node.js + Express
+- Database: SQL Server
+
+(c) 2025 EjLog WMS - Tutti i diritti riservati

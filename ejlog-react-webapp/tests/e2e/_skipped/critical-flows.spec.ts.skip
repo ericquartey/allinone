@@ -1,0 +1,515 @@
+import { test, expect, Page } from '@playwright/test';
+
+/**
+ * E2E Tests for Critical User Flows
+ *
+ * Tests cover:
+ * - Authentication
+ * - Navigation
+ * - Lists Management (Picking workflow)
+ * - Stock Management
+ * - Barcode Scanning
+ * - Offline Mode
+ * - PWA Features
+ */
+
+// Test data
+const TEST_USER = {
+  username: 'admin',
+  password: 'admin'
+};
+
+const TEST_BARCODE = 'TEST123456';
+
+// Helper functions
+async function login(page: Page) {
+  await page.goto('/login');
+  await page.fill('input[name="username"]', TEST_USER.username);
+  await page.fill('input[name="password"]', TEST_USER.password);
+  await page.click('button[type="submit"]');
+  await page.waitForURL('/dashboard');
+}
+
+async function logout(page: Page) {
+  await page.click('[data-testid="user-menu"]');
+  await page.click('[data-testid="logout-button"]');
+  await page.waitForURL('/login');
+}
+
+test.describe('Authentication', () => {
+  test('should login successfully with valid credentials', async ({ page }) => {
+    await login(page);
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.locator('h1')).toContainText('Dashboard');
+  });
+
+  test('should show error with invalid credentials', async ({ page }) => {
+    await page.goto('/login');
+    await page.fill('input[name="username"]', 'invalid');
+    await page.fill('input[name="password"]', 'wrong');
+    await page.click('button[type="submit"]');
+
+    await expect(page.locator('[role="alert"]')).toBeVisible();
+    await expect(page.locator('[role="alert"]')).toContainText(/invalid|error/i);
+  });
+
+  test('should logout successfully', async ({ page }) => {
+    await login(page);
+    await logout(page);
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('should redirect to login when accessing protected route without auth', async ({ page }) => {
+    await page.goto('/lists');
+    await expect(page).toHaveURL(/\/login/);
+  });
+});
+
+test.describe('Navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+  });
+
+  test('should navigate to all main sections', async ({ page }) => {
+    const sections = [
+      { link: 'Liste', url: '/lists' },
+      { link: 'Giacenze', url: '/stock' },
+      { link: 'Operazioni', url: '/operations' },
+      { link: 'Allarmi', url: '/alarms' },
+      { link: 'Report', url: '/reports' }
+    ];
+
+    for (const section of sections) {
+      await page.click(`text="${section.link}"`);
+      await expect(page).toHaveURL(new RegExp(section.url));
+      await page.waitForLoadState('networkidle');
+    }
+  });
+
+  test('should show mobile navigation on small screens', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.reload();
+
+    // Menu button should be visible
+    await expect(page.locator('[aria-label="Open menu"]')).toBeVisible();
+
+    // Click to open drawer
+    await page.click('[aria-label="Open menu"]');
+    await expect(page.locator('text="Menu"')).toBeVisible();
+  });
+
+  test('should show bottom navigation on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.reload();
+
+    // Bottom nav should be visible
+    const bottomNav = page.locator('[data-testid="bottom-nav"]');
+    await expect(bottomNav).toBeVisible();
+
+    // Should have 4 quick actions
+    const navItems = bottomNav.locator('button');
+    await expect(navItems).toHaveCount(4);
+  });
+});
+
+test.describe('Lists Management - Picking Workflow', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.goto('/lists');
+  });
+
+  test('should display lists overview', async ({ page }) => {
+    await expect(page.locator('h1')).toContainText(/Liste|Lists/i);
+
+    // Check for list cards
+    const listCards = page.locator('[data-testid="list-card"]');
+    await expect(listCards.first()).toBeVisible();
+  });
+
+  test('should filter lists by type', async ({ page }) => {
+    // Click on Picking filter
+    await page.click('text="Picking"');
+    await page.waitForLoadState('networkidle');
+
+    // Verify URL contains filter
+    await expect(page).toHaveURL(/type=picking/i);
+  });
+
+  test('should open list detail', async ({ page }) => {
+    // Click on first list
+    await page.click('[data-testid="list-card"]');
+
+    // Should navigate to detail page
+    await expect(page).toHaveURL(/\/lists\/\d+/);
+
+    // Should show list items
+    await expect(page.locator('[data-testid="list-items"]')).toBeVisible();
+  });
+
+  test('should complete picking workflow', async ({ page }) => {
+    // Open a list
+    await page.click('[data-testid="list-card"]');
+
+    // Start list execution
+    await page.click('button:has-text("Inizia")');
+
+    // Scan first item (simulate)
+    await page.click('[data-testid="scan-button"]');
+    await page.fill('[data-testid="barcode-input"]', TEST_BARCODE);
+    await page.click('button:has-text("Conferma")');
+
+    // Item should be marked as completed
+    await expect(page.locator('[data-testid="item-completed"]').first()).toBeVisible();
+
+    // Complete all items simulation
+    await page.click('button:has-text("Completa Lista")');
+
+    // Confirmation dialog
+    await page.click('button:has-text("Conferma")');
+
+    // Should show success message
+    await expect(page.locator('[role="alert"]')).toContainText(/completat|success/i);
+  });
+});
+
+test.describe('Stock Management', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+    await page.goto('/stock');
+  });
+
+  test('should display stock overview', async ({ page }) => {
+    await expect(page.locator('h1')).toContainText(/Giacenze|Stock/i);
+
+    // Should show stock cards
+    await expect(page.locator('[data-testid="stock-card"]').first()).toBeVisible();
+  });
+
+  test('should search stock items', async ({ page }) => {
+    const searchInput = page.locator('input[placeholder*="Cerca"]');
+    await searchInput.fill('TEST');
+    await page.waitForTimeout(500); // Debounce
+
+    // Results should update
+    await page.waitForLoadState('networkidle');
+  });
+
+  test('should view stock item detail', async ({ page }) => {
+    await page.click('[data-testid="stock-card"]');
+
+    // Should show detail modal or page
+    await expect(page.locator('[data-testid="stock-detail"]')).toBeVisible();
+
+    // Should show movement history
+    await expect(page.locator('[data-testid="movement-history"]')).toBeVisible();
+  });
+});
+
+test.describe('Barcode Scanner', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+  });
+
+  test('should open barcode scanner', async ({ page }) => {
+    await page.goto('/lists');
+    await page.click('[data-testid="list-card"]');
+
+    // Open scanner
+    await page.click('[data-testid="scan-button"]');
+
+    // Scanner modal should be visible
+    await expect(page.locator('text="Scansiona Barcode"')).toBeVisible();
+  });
+
+  test('should switch between camera and manual mode', async ({ page }) => {
+    await page.goto('/lists');
+    await page.click('[data-testid="list-card"]');
+    await page.click('[data-testid="scan-button"]');
+
+    // Should start in camera mode
+    await expect(page.locator('video')).toBeVisible();
+
+    // Switch to manual mode
+    await page.click('button:has-text("Manuale")');
+
+    // Should show input field
+    await expect(page.locator('input[placeholder*="barcode"]')).toBeVisible();
+  });
+
+  test('should scan barcode manually', async ({ page }) => {
+    await page.goto('/lists');
+    await page.click('[data-testid="list-card"]');
+    await page.click('[data-testid="scan-button"]');
+
+    // Switch to manual
+    await page.click('button:has-text("Manuale")');
+
+    // Enter barcode
+    await page.fill('input[placeholder*="barcode"]', TEST_BARCODE);
+    await page.click('button:has-text("Conferma")');
+
+    // Should close scanner and process barcode
+    await expect(page.locator('text="Scansiona Barcode"')).not.toBeVisible();
+  });
+
+  test('should show recent scans history', async ({ page }) => {
+    await page.goto('/lists');
+    await page.click('[data-testid="list-card"]');
+    await page.click('[data-testid="scan-button"]');
+    await page.click('button:has-text("Manuale")');
+
+    // Scan multiple barcodes
+    for (let i = 1; i <= 3; i++) {
+      await page.fill('input[placeholder*="barcode"]', `TEST${i}`);
+      await page.click('button:has-text("Conferma")');
+      await page.click('[data-testid="scan-button"]');
+      await page.click('button:has-text("Manuale")');
+    }
+
+    // Should show recent scans
+    await expect(page.locator('text="Scansioni Recenti"')).toBeVisible();
+    await expect(page.locator('[data-testid="scan-history-item"]')).toHaveCount(3);
+  });
+});
+
+test.describe('Offline Mode', () => {
+  test.beforeEach(async ({ page }) => {
+    await login(page);
+  });
+
+  test('should detect offline state', async ({ page }) => {
+    // Go offline
+    await page.context().setOffline(true);
+
+    // Should show offline indicator
+    await expect(page.locator('text=/Offline|Modalità Offline/i')).toBeVisible();
+  });
+
+  test('should queue operations when offline', async ({ page }) => {
+    await page.goto('/operations');
+
+    // Go offline
+    await page.context().setOffline(true);
+
+    // Create an operation
+    await page.click('button:has-text("Nuova Operazione")');
+    await page.fill('[name="description"]', 'Test Offline Operation');
+    await page.click('button[type="submit"]');
+
+    // Should show saved offline message
+    await expect(page.locator('[role="alert"]')).toContainText(/offline|salvato/i);
+
+    // Check offline data manager
+    await page.goto('/settings');
+    await expect(page.locator('text="Dati in Attesa"')).toBeVisible();
+    await expect(page.locator('text="1"')).toBeVisible(); // 1 pending item
+  });
+
+  test('should sync when back online', async ({ page }) => {
+    await page.goto('/operations');
+
+    // Go offline and create operation
+    await page.context().setOffline(true);
+    await page.click('button:has-text("Nuova Operazione")');
+    await page.fill('[name="description"]', 'Test Sync Operation');
+    await page.click('button[type="submit"]');
+
+    // Go back online
+    await page.context().setOffline(false);
+    await page.waitForTimeout(1000);
+
+    // Should show sync message
+    await expect(page.locator('text=/Sincronizzazione|Connesso/i')).toBeVisible();
+  });
+});
+
+test.describe('PWA Features', () => {
+  test('should be installable', async ({ page, context }) => {
+    await page.goto('/');
+
+    // Check if PWA manifest is loaded
+    const manifestLink = page.locator('link[rel="manifest"]');
+    await expect(manifestLink).toHaveAttribute('href', /manifest\.json/);
+
+    // Check if service worker is registered
+    const swRegistration = await page.evaluate(() =>
+      navigator.serviceWorker.getRegistration()
+    );
+    expect(swRegistration).toBeTruthy();
+  });
+
+  test('should show install prompt on supported browsers', async ({ page, browserName }) => {
+    // Skip on browsers that don't support beforeinstallprompt
+    test.skip(browserName === 'webkit', 'Safari does not support beforeinstallprompt');
+
+    await login(page);
+
+    // Wait for install prompt (if shown)
+    await page.waitForTimeout(3000);
+
+    // Check if install button/prompt is visible
+    const installPrompt = page.locator('text=/Installa|Install/i');
+    // May or may not be visible depending on browser/previous installs
+  });
+
+  test('should work offline with service worker', async ({ page }) => {
+    await login(page);
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
+
+    // Go offline
+    await page.context().setOffline(true);
+
+    // Navigate to cached page
+    await page.goto('/lists');
+
+    // Page should still load from cache
+    await expect(page.locator('h1')).toContainText(/Liste|Lists/i);
+  });
+});
+
+test.describe('Responsive Design', () => {
+  const viewports = [
+    { name: 'Mobile', width: 375, height: 667 },
+    { name: 'Tablet', width: 768, height: 1024 },
+    { name: 'Desktop', width: 1920, height: 1080 }
+  ];
+
+  for (const viewport of viewports) {
+    test(`should render correctly on ${viewport.name}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await login(page);
+
+      // Check main elements are visible
+      await expect(page.locator('h1')).toBeVisible();
+
+      // Navigate to lists
+      await page.goto('/lists');
+      await expect(page.locator('[data-testid="list-card"]').first()).toBeVisible();
+
+      // Take screenshot for visual regression
+      await page.screenshot({
+        path: `test-results/screenshots/${viewport.name.toLowerCase()}-lists.png`,
+        fullPage: true
+      });
+    });
+  }
+});
+
+test.describe('Performance', () => {
+  test('should load dashboard within acceptable time', async ({ page }) => {
+    const startTime = Date.now();
+
+    await login(page);
+    await page.waitForLoadState('networkidle');
+
+    const loadTime = Date.now() - startTime;
+
+    // Should load within 3 seconds
+    expect(loadTime).toBeLessThan(3000);
+  });
+
+  test('should have good web vitals', async ({ page }) => {
+    await login(page);
+
+    // Measure Core Web Vitals
+    const metrics = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          resolve(entries.map(entry => ({
+            name: entry.name,
+            value: entry.startTime
+          })));
+        }).observe({ entryTypes: ['paint', 'largest-contentful-paint'] });
+
+        // Timeout after 5s
+        setTimeout(() => resolve([]), 5000);
+      });
+    });
+
+    console.log('Web Vitals:', metrics);
+    // Metrics collected for analysis
+  });
+});
+
+test.describe('Accessibility', () => {
+  test('should have no automatic accessibility violations', async ({ page }) => {
+    await login(page);
+
+    // Check for basic accessibility
+    // Note: For full a11y testing, integrate @axe-core/playwright
+
+    // Check page has title
+    await expect(page).toHaveTitle(/.+/);
+
+    // Check main heading exists
+    await expect(page.locator('h1')).toBeVisible();
+
+    // Check no empty links
+    const emptyLinks = await page.locator('a:not([aria-label]):not(:has-text)').count();
+    expect(emptyLinks).toBe(0);
+
+    // Check all images have alt text
+    const imagesWithoutAlt = await page.locator('img:not([alt])').count();
+    expect(imagesWithoutAlt).toBe(0);
+  });
+
+  test('should be keyboard navigable', async ({ page }) => {
+    await page.goto('/login');
+
+    // Tab through form
+    await page.keyboard.press('Tab'); // Username
+    await page.keyboard.type(TEST_USER.username);
+    await page.keyboard.press('Tab'); // Password
+    await page.keyboard.type(TEST_USER.password);
+    await page.keyboard.press('Tab'); // Submit button
+    await page.keyboard.press('Enter'); // Submit
+
+    // Should login
+    await expect(page).toHaveURL(/\/dashboard/);
+  });
+
+  test('should have proper ARIA labels', async ({ page }) => {
+    await login(page);
+
+    // Check for ARIA landmarks
+    await expect(page.locator('[role="main"]')).toBeVisible();
+    await expect(page.locator('[role="navigation"]')).toBeVisible();
+  });
+});
+
+test.describe('Error Handling', () => {
+  test('should show error message on API failure', async ({ page, context }) => {
+    // Intercept API calls and return error
+    await page.route('**/api/**', route => {
+      route.fulfill({
+        status: 500,
+        body: JSON.stringify({ error: 'Internal Server Error' })
+      });
+    });
+
+    await page.goto('/login');
+    await page.fill('input[name="username"]', TEST_USER.username);
+    await page.fill('input[name="password"]', TEST_USER.password);
+    await page.click('button[type="submit"]');
+
+    // Should show error message
+    await expect(page.locator('[role="alert"]')).toBeVisible();
+  });
+
+  test('should handle network timeout gracefully', async ({ page }) => {
+    // Slow down network
+    await page.route('**/api/**', route => {
+      setTimeout(() => route.continue(), 10000);
+    });
+
+    await page.goto('/lists', { timeout: 5000 }).catch(() => {});
+
+    // Should show loading state or error
+    const hasLoader = await page.locator('[data-testid="loader"]').isVisible().catch(() => false);
+    const hasError = await page.locator('[role="alert"]').isVisible().catch(() => false);
+
+    expect(hasLoader || hasError).toBeTruthy();
+  });
+});

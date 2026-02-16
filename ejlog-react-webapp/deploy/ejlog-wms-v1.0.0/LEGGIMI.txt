@@ -1,0 +1,110 @@
+================================================================================
+    EjLog WMS v1.0.0 - Installazione Automatica
+================================================================================
+
+INSTALLAZIONE AUTOMATICA - NON SERVE CONFIGURARE NULLA!
+
+Database: localhost\SQL2019 - promag (GIÀ CONFIGURATO)
+Credenziali: sa / fergrp_2012 (GIÀ INCLUSE)
+
+================================================================================
+ISTRUZIONI SEMPLICI:
+================================================================================
+
+1. INSTALLA (una sola volta)
+   -------------------------
+   Doppio click su:  install.bat
+
+   Attendi 2-5 minuti mentre installa le dipendenze.
+   NON CHIUDERE LA FINESTRA durante l'installazione!
+
+
+2. AVVIA (ogni volta che vuoi usare l'applicazione)
+   -------------------------------------------------
+   Doppio click su:  start-production.bat
+
+   Si aprirà automaticamente il browser su http://localhost:3000
+
+
+3. LOGIN
+   ------
+   Username: admin
+   Password: admin
+
+
+4. FERMA (quando hai finito)
+   --------------------------
+   Doppio click su:  stop-all.bat
+
+================================================================================
+REQUISITI:
+================================================================================
+
+- Node.js 18 o superiore (scarica da: https://nodejs.org)
+- SQL Server con database "promag" già esistente
+- Windows 10 o superiore
+
+================================================================================
+RISOLUZIONE PROBLEMI:
+================================================================================
+
+PROBLEMA: "Node.js non trovato"
+SOLUZIONE: Installa Node.js da https://nodejs.org (versione 20.x LTS)
+
+PROBLEMA: "Errore connessione database"
+SOLUZIONE: Verifica che SQL Server sia avviato e il database "promag" esista
+
+PROBLEMA: "Porta 3000 occupata"
+SOLUZIONE: Apri CMD e digita:
+           netstat -ano | findstr :3000
+           taskkill /F /PID <numero_pid>
+
+PROBLEMA: "Express non trovato"
+SOLUZIONE: Riesegui install.bat
+
+================================================================================
+STRUTTURA:
+================================================================================
+
+install.bat              <- PASSO 1: Esegui questo per installare
+start-production.bat     <- PASSO 2: Esegui questo per avviare
+stop-all.bat            <- PASSO 3: Esegui questo per fermare
+
+frontend\dist\          <- Build React (non modificare)
+backend\server\         <- Server Node.js (non modificare)
+config\.env             <- Configurazione database (già pronta)
+logs\                   <- Log applicazione (creata automaticamente)
+
+================================================================================
+URL IMPORTANTI:
+================================================================================
+
+Frontend:      http://localhost:3000
+Backend API:   http://localhost:3077
+Health Check:  http://localhost:3077/health
+
+================================================================================
+FUNZIONALITÀ INCLUSE:
+================================================================================
+
+✓ Gestione Magazzini (NEW!)
+✓ Dashboard real-time
+✓ User Management
+✓ Analytics & Reports
+✓ Scheduler automatico
+✓ Voice Pick (AI/ML)
+✓ PTL System
+✓ Barcode Scanner
+
+================================================================================
+SUPPORTO:
+================================================================================
+
+Log errori: logs\ejlog-wms.log
+Email: support@ejlog-wms.com
+
+================================================================================
+Versione: 1.0.0
+Data: 2025-12-23
+================================================================================
+

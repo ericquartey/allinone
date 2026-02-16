@@ -1,0 +1,49 @@
+import apiClient from './client';
+import { API_ENDPOINTS } from './endpoints';
+
+/**
+ * Items API Service
+ * Handles item-related operations
+ */
+export const itemsService = {
+  /**
+   * Get paginated items
+   * @param {number} skip - Number of items to skip (converted to offset)
+   * @param {number} take - Number of items to take (converted to limit)
+   * @param {string} orderBy - Order by field
+   * @param {string} itemCode - Optional item code filter
+   * @returns {Promise<Object>} Response with items and total count
+   */
+  getItems: async ({ skip = 0, take = 50, orderBy = null, itemCode = null } = {}) => {
+    try {
+      // Backend API uses 'limit' and 'offset' instead of 'take' and 'skip'
+      const params = {
+        limit: take,
+        offset: skip
+      };
+      if (orderBy) params.orderBy = orderBy;
+      if (itemCode) params.itemCode = itemCode;
+
+      const response = await apiClient.get(API_ENDPOINTS.ITEMS, { params });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Create or update items
+   * @param {Array} items - Array of items to save
+   * @returns {Promise<Object>} Standard response
+   */
+  saveItems: async (items) => {
+    try {
+      const response = await apiClient.post(API_ENDPOINTS.ITEMS, items);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+};
+
+export default itemsService;

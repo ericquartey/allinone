@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto-login Development</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Auto-login Development Mode</h1>
+    <p>Redirecting...</p>
+
+    <script>
+        // Auto-login as superuser in development
+        const superuser = {
+            username: 'superuser',
+            accessLevel: 'ADMIN',
+            roles: ['ADMIN', 'SUPERVISOR', 'OPERATOR'],
+            fullName: 'Super User',
+            email: 'superuser@ejlog.local'
+        };
+
+        localStorage.setItem('token', 'dev_mock_token_superuser');
+        localStorage.setItem('user', JSON.stringify(superuser));
+
+        // Redirect to app
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+{
+  "picking": [
+    {
+      "id": "PickProdottoIdCorrispondente",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoIdCorrispondente"
+    },
+    {
+      "id": "PickArticoloCorrispondente",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoArticoloCorrispondente"
+    },
+    {
+      "id": "PickLocazioneAbilitataPrelievo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoInLocazioneAbilitataPrelievo"
+    },
+    {
+      "id": "PickInMagazzinoAmmissibile",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoInMagazzinoAmmissibile"
+    },
+    {
+      "id": "PickQtaDisponibileOut",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoQtaDisponibileOut"
+    },
+    {
+      "id": "PickQtaPrenotataZero",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoQtaPrenotataOutZero"
+    },
+    {
+      "id": "PickLottoCompatibile",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoLottoCorrispondente"
+    },
+    {
+      "id": "PickMatricolaCompatibile",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoMatricolaCorrispondente"
+    },
+    {
+      "id": "PickProdottoNonBloccato",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.prodotto.HqlFilterProdottoNonBloccato"
+    },
+    {
+      "id": "PickVicinanzaPrimoPrelievo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoVicinanzaWPrimoPrelievo"
+    },
+    {
+      "id": "PickQtaMinore",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoQtaMinore"
+    },
+    {
+      "id": "PickVicinanzaDestinazione",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoVicinanzaDestinazione"
+    },
+    {
+      "id": "PickQtaMassimaInsufficiente",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoQtaMassimaInsufficiente"
+    },
+    {
+      "id": "PickQtaMinimaSufficiente",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoQtaMinimaSufficiente"
+    },
+    {
+      "id": "PickQtaEsatta",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoQtaEsattaPicking"
+    },
+    {
+      "id": "PickFifoDataProduzione",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoDataProduzioneFifo"
+    },
+    {
+      "id": "PickFifoDataScadenza",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoDataScadenzaFifo"
+    },
+    {
+      "id": "PickUdcGiaPrevistaEstrazione",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoGiaPrevistaEstrazioneUdc"
+    },
+    {
+      "id": "PickUdcInBaia",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInBaiaVertimag"
+    },
+    {
+      "id": "PickInMagazzinoPreferenziale",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInMagazzinoPreferenziale"
+    },
+    {
+      "id": "PickInMagazzinoAutomatico",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInMagazzinoAutomatico"
+    },
+    {
+      "id": "PickInMagazzinoATerra",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInMagazzinoATerra"
+    },
+    {
+      "id": "PickUdcMinore",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoUdcMinore"
+    },
+    {
+      "id": "PickSupportoTopLeftHorizontal",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoTopLeftHorizontal"
+    },
+    {
+      "id": "PickSupportoTopLeftVertical",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoTopLeftVertical"
+    },
+    {
+      "id": "PickSupportoTopRightHorizontal",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoTopRightHorizontal"
+    },
+    {
+      "id": "PickSupportoTopRightVertical",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoTopRightVertical"
+    },
+    {
+      "id": "PickSupportoBottomLeftHorizontal",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoBottomLeftHorizontal"
+    },
+    {
+      "id": "PickSupportoBottomLeftVertical",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoBottomLeftVertical"
+    },
+    {
+      "id": "PickSupportoBottomRightHorizontal",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoBottomRightHorizontal"
+    },
+    {
+      "id": "PickSupportoBottomRightVertical",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoPosizioneInSupportoBottomRightVertical"
+    },
+    {
+      "id": "PickBilanciaCorridoi",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoBilanciaPrenotatiPerMagazzino"
+    },
+    {
+      "id": "PickCanaleConMenoUdc",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInCanaleConMenoUdc"
+    },
+    {
+      "id": "PickCanaleUdcGiaPrenotateStessaRiga",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.prodotto.LogicProdottoInCanaleConUdcPrenotateStessaRiga"
+    }
+  ],
+  "refilling": [
+    {
+      "id": "RefilSupportoVuoto",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoVuoto"
+    },
+    {
+      "id": "RefilSupportoNonPieno",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoNonPieno"
+    },
+    {
+      "id": "RefilArticoloPresente",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoRefillingArticoloPresente"
+    },
+    {
+      "id": "RefilLocazioneAbilitataPrelievo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoInLocazioneAbilitataPrelievo"
+    },
+    {
+      "id": "RefilMagazzinoAmmissibile",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoInMagazzinoAmmissibile"
+    },
+    {
+      "id": "RefilNoSupportiStatici",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoSenzaAssociazioniStatiche"
+    },
+    {
+      "id": "RefilLarghezzaCompatibileArticolo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoRefillingLarghezzaCompatibileArticolo"
+    },
+    {
+      "id": "RefilProfonditaCompatibileArticolo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoRefillingProfonditaCompatibileArticolo"
+    },
+    {
+      "id": "RefilSupportiStatici",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.HqlFilterLogicSupportoConAssociazioneStatica"
+    },
+    {
+      "id": "RefilClasseAltezzaArticolo",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.HqlFilterLogicSupportoClasseAltezzaCompatibileArticolo"
+    },
+    {
+      "id": "RefilGestioneLotto",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.HqlFilterLogicSupportoRefillingGestioneLotto"
+    },
+    {
+      "id": "RefilGestioneMatricola",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.hqlfilter.supporto.HqlFilterSupportoRefillingGestioneMatricola"
+    },
+    {
+      "id": "RefilInMagazzinoAutomatico",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoInMagazzinoAutomatico"
+    },
+    {
+      "id": "RefilInMagazzinoATerra",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoInMagazzinoATerra"
+    },
+    {
+      "id": "RefilSupportoBottomToTop",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoPosizioneBottomToTop"
+    },
+    {
+      "id": "RefilSupportoTopToBottom",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoPosizioneTopToBottom"
+    },
+    {
+      "id": "RefilSupportoLeftToRight",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoPosizioneLeftToRight"
+    },
+    {
+      "id": "RefilSupportoRightToLeft",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoPosizioneRightToLeft"
+    },
+    {
+      "id": "RefilUdcConPiuSupportiVuoti",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoUdcConPiuSupportiVuoti"
+    },
+    {
+      "id": "RefilIdUdcAsc",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoIdUdcAsc"
+    },
+    {
+      "id": "RefilIdUdcDesc",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoIdUdcDesc"
+    },
+    {
+      "id": "RefilCoordinataYAsc",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoYAsc"
+    },
+    {
+      "id": "RefilCoordinataYDesc",
+      "className": "com.promag.wms.base.prenotatore.system.criterions.logic.supporto.LogicSupportoYDesc"
+    }
+  ]
+}

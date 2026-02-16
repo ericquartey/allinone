@@ -1,0 +1,973 @@
+/**
+ * Lists Management Page Complete - Gestione Completa Liste Magazzino
+ * CRUD completo per liste Picking, Refilling e Inventario con API reali
+ *
+ * Funzionalità:
+ * - Visualizzazione liste con paginazione
+ * - Creazione nuove liste con righe
+ * - Modifica liste esistenti (header e righe)
+ * - Eliminazione liste
+ * - Filtri avanzati (tipo, stato, numero lista, ordine)
+ * - Dialog dettagli con visualizzazione righe
+ * - Progress bar per stato avanzamento
+ * - Export/Import righe
+ */
+
+import React, { useState, useEffect } from 'react';
+import {
+  Box, Button, Card, TextField, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, TablePagination, Grid, Typography, Alert, CircularProgress,
+  Chip, IconButton, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
+  FormControl, InputLabel, Select, MenuItem, LinearProgress, Divider, Stack,
+  Paper, Tab, Tabs
+} from '@mui/material';
+import {
+  Refresh as RefreshIcon,
+  Add as AddIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  List as ListIcon,
+  Search as SearchIcon,
+  Close as CloseIcon,
+  Save as SaveIcon,
+  AddCircle as AddCircleIcon,
+  RemoveCircle as RemoveCircleIcon,
+  Assignment as AssignmentIcon
+} from '@mui/icons-material';
+import api, { List as LegacyList, ListHeader as LegacyListHeader, ListRow as LegacyListRow, ListCommand as LegacyListCommand } from '../../services/api-legacy';
+import * as ListsService from '../../services/listsService';
+import type { List, ListRow, CreateListParams, UpdateListParams } from '../../services/listsService';
+import AssignListModal from '../../components/lists/AssignListModal';
+
+// Tipo per il form di creazione/modifica lista
+interface ListFormData {
+  listNumber: string;
+  listDescription: string;
+  listType: 0 | 1 | 2; // 0=Picking, 1=Refilling, 2=Inventory
+  listStatus: 1 | 2 | 3; // 1=Waiting, 2=InProgress, 3=Completed
+  cause: string;
+  orderNumber: string;
+  priority: number;
+  exitPoint: string;
+  selectedWarehouses: number[];
+}
+
+// Tipo per il form righe
+interface RowFormData {
+  rowNumber: string;
+  item: string;
+  lineDescription: string;
+  requestedQty: number;
+  lot: string;
+  serialNumber: string;
+  expiryDate: string;
+  rowSequence: number;
+}
+
+const ListsManagementPageComplete: React.FC = () => {
+  // Stati principali
+  const [lists, setLists] = useState<List[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Paginazione
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(25);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+
+  // Filtri
+  const [filterListNumber, setFilterListNumber] = useState<string>('');
+  const [filterOrder, setFilterOrder] = useState<string>('');
+  const [filterListType, setFilterListType] = useState<string>('');
+  const [filterListStatus, setFilterListStatus] = useState<string>('');
+
+  // Stati ricerca applicata
+  const [searchListNumber, setSearchListNumber] = useState<string>('');
+  const [searchOrder, setSearchOrder] = useState<string>('');
+  const [searchListType, setSearchListType] = useState<string>('');
+  const [searchListStatus, setSearchListStatus] = useState<string>('');
+
+  // Dialog dettagli
+  const [detailsDialog, setDetailsDialog] = useState<boolean>(false);
+  const [selectedList, setSelectedList] = useState<List | null>(null);
+
+  // Dialog creazione/modifica
+  const [editDialog, setEditDialog] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<'create' | 'edit'>('create');
+  const [currentTab, setCurrentTab] = useState<number>(0); // 0=Header, 1=Righe
+
+  // Dialog assegnazione lista
+  const [assignDialog, setAssignDialog] = useState<boolean>(false);
+  const [listToAssign, setListToAssign] = useState<List | null>(null);
+
+  // Form data
+  const [formData, setFormData] = useState<ListFormData>({
+    listNumber: '',
+    listDescription: '',
+    listType: 0,
+    listStatus: 1,
+    cause: '',
+    orderNumber: '',
+    priority: 50,
+    exitPoint: '',
+    selectedWarehouses: [1]
+  });
+
+  const [rows, setRows] = useState<RowFormData[]>([]);
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
+
+  // Carica liste dal backend usando il nuovo servizio centralizzato
+  const loadLists = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await ListsService.getLists({
+        limit: rowsPerPage,
+        offset: page * rowsPerPage,
+        ...(searchListNumber && { listNumber: searchListNumber }),
+        ...(searchListType !== '' && { listType: parseInt(searchListType) as ListsService.ListType }),
+        ...(searchListStatus !== '' && { listStatus: parseInt(searchListStatus) as ListsService.ListStatus }),
+      });
+
+      if (response.result === 'OK') {
+        setLists(response.exportedItems || []);
+        setTotalRecords(response.recordNumber || 0);
+      } else {
+        setError(response.message || 'Errore nel caricamento liste');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Errore di connessione al server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLists();
+  }, [page, rowsPerPage, searchListNumber, searchOrder, searchListType, searchListStatus]);
+
+  // Applica filtri
+  const handleSearch = () => {
+    setSearchListNumber(filterListNumber);
+    setSearchOrder(filterOrder);
+    setSearchListType(filterListType);
+    setSearchListStatus(filterListStatus);
+    setPage(0);
+  };
+
+  // Reset filtri
+  const handleResetFilters = () => {
+    setFilterListNumber('');
+    setFilterOrder('');
+    setFilterListType('');
+    setFilterListStatus('');
+    setSearchListNumber('');
+    setSearchOrder('');
+    setSearchListType('');
+    setSearchListStatus('');
+    setPage(0);
+  };
+
+  // Utilizza funzione di utilità dal servizio centralizzato
+  const calculateProgress = ListsService.calculateListProgress;
+
+  // Apri dialog dettagli
+  const handleViewDetails = (list: List) => {
+    setSelectedList(list);
+    setDetailsDialog(true);
+  };
+
+  // Apri dialog creazione
+  const handleCreate = () => {
+    setEditMode('create');
+    setFormData({
+      listNumber: `L${Date.now()}`, // Genera numero lista automatico
+      listDescription: '',
+      listType: 0,
+      listStatus: 1,
+      cause: '',
+      orderNumber: '',
+      priority: 50,
+      exitPoint: '',
+      selectedWarehouses: [1]
+    });
+    setRows([{
+      rowNumber: '1',
+      item: '',
+      lineDescription: '',
+      requestedQty: 0,
+      lot: '',
+      serialNumber: '',
+      expiryDate: '',
+      rowSequence: 1
+    }]);
+    setFormErrors({});
+    setCurrentTab(0);
+    setEditDialog(true);
+  };
+
+  // Apri dialog modifica
+  const handleEdit = (list: List) => {
+    setEditMode('edit');
+    setFormData({
+      listNumber: list.listHeader.listNumber,
+      listDescription: list.listHeader.listDescription || '',
+      listType: list.listHeader.listType,
+      listStatus: list.listHeader.listStatus,
+      cause: list.listHeader.cause || '',
+      orderNumber: list.listHeader.orderNumber || '',
+      priority: list.listHeader.priority || 50,
+      exitPoint: list.listHeader.exitPoint || '',
+      selectedWarehouses: list.listHeader.selectedWarehouses || [1]
+    });
+    setRows(list.listRows.map((row, idx) => ({
+      rowNumber: row.rowNumber,
+      item: row.item,
+      lineDescription: row.lineDescription || '',
+      requestedQty: row.requestedQty,
+      lot: row.lot || '',
+      serialNumber: row.serialNumber || '',
+      expiryDate: row.expiryDate || '',
+      rowSequence: idx + 1
+    })));
+    setFormErrors({});
+    setCurrentTab(0);
+    setEditDialog(true);
+  };
+
+  // Apri dialog assegnazione
+  const handleAssign = (list: List) => {
+    setListToAssign(list);
+    setAssignDialog(true);
+  };
+
+  // Callback quando assegnazione completata
+  const handleAssignSuccess = () => {
+    setSuccess(`Lista ${listToAssign?.listHeader.listNumber} assegnata con successo`);
+    loadLists(); // Ricarica la lista
+  };
+
+  // Elimina lista usando il nuovo servizio
+  const handleDelete = async (listNumber: string) => {
+    if (!confirm(`Confermi l'eliminazione della lista ${listNumber}?`)) return;
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await ListsService.deleteList(listNumber);
+
+      if (response.result === 'OK') {
+        setSuccess(`Lista ${listNumber} eliminata con successo`);
+        loadLists();
+      } else {
+        setError(response.message || 'Errore nell\'eliminazione della lista');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Errore di connessione');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Valida form
+  const validateForm = (): boolean => {
+    const errors: { [key: string]: string } = {};
+
+    if (!formData.listNumber.trim()) {
+      errors.listNumber = 'Numero lista obbligatorio';
+    }
+
+    if (rows.length === 0) {
+      errors.rows = 'Inserire almeno una riga';
+    }
+
+    rows.forEach((row, idx) => {
+      if (!row.item.trim()) {
+        errors[`row_${idx}_item`] = 'Articolo obbligatorio';
+      }
+      if (row.requestedQty <= 0) {
+        errors[`row_${idx}_qty`] = 'Quantità deve essere maggiore di 0';
+      }
+    });
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Salva lista (crea o modifica)
+  const handleSave = async () => {
+    if (!validateForm()) {
+      setError('Correggere gli errori nel form');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const command: ListCommand = {
+        listHeader: {
+          listNumber: formData.listNumber,
+          command: editMode === 'create' ? 1 : 3, // 1=New, 3=UpdateHeader
+          listDescription: formData.listDescription,
+          listType: formData.listType,
+          listStatus: formData.listStatus,
+          cause: formData.cause,
+          orderNumber: formData.orderNumber,
+          priority: formData.priority,
+          exitPoint: formData.exitPoint,
+          selectedWarehouses: formData.selectedWarehouses
+        },
+        listRows: rows.map(row => ({
+          rowNumber: row.rowNumber,
+          item: row.item,
+          lineDescription: row.lineDescription,
+          requestedQty: row.requestedQty,
+          lot: row.lot,
+          serialNumber: row.serialNumber,
+          expiryDate: row.expiryDate || null,
+          rowSequence: row.rowSequence
+        }))
+      };
+
+      const response = await api.manageLists([command]);
+
+      if (response.result === 'OK') {
+        setSuccess(editMode === 'create' ? 'Lista creata con successo' : 'Lista aggiornata con successo');
+        setEditDialog(false);
+        loadLists();
+      } else {
+        setError(response.message || 'Errore nel salvataggio della lista');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Errore di connessione');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Aggiungi riga
+  const handleAddRow = () => {
+    const newRowNumber = (rows.length + 1).toString();
+    setRows([...rows, {
+      rowNumber: newRowNumber,
+      item: '',
+      lineDescription: '',
+      requestedQty: 0,
+      lot: '',
+      serialNumber: '',
+      expiryDate: '',
+      rowSequence: rows.length + 1
+    }]);
+  };
+
+  // Rimuovi riga
+  const handleRemoveRow = (index: number) => {
+    const newRows = rows.filter((_, idx) => idx !== index);
+    // Riassegna numeri riga
+    setRows(newRows.map((row, idx) => ({
+      ...row,
+      rowNumber: (idx + 1).toString(),
+      rowSequence: idx + 1
+    })));
+  };
+
+  // Aggiorna campo riga
+  const handleRowChange = (index: number, field: keyof RowFormData, value: any) => {
+    const newRows = [...rows];
+    newRows[index] = { ...newRows[index], [field]: value };
+    setRows(newRows);
+  };
+
+  // Utilizza funzioni di utilità dal servizio centralizzato
+  const getListTypeLabel = (type: number): string => ListsService.getListTypeLabel(type as ListsService.ListType);
+  const getListStatusLabel = (status: number): string => ListsService.getListStatusLabel(status as ListsService.ListStatus);
+
+  // Ottieni colore chip stato
+  const getStatusColor = (status: number): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+    const colors: { [key: number]: "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" } = {
+      1: 'info',
+      2: 'warning',
+      3: 'success'
+    };
+    return colors[status] || 'default';
+  };
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <ListIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <Typography variant="h4">Gestione Liste Magazzino</Typography>
+        </Box>
+        <Stack direction="row" spacing={2}>
+          <Tooltip title="Nuova Lista">
+            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleCreate}>
+              Nuova Lista
+            </Button>
+          </Tooltip>
+          <Tooltip title="Aggiorna">
+            <IconButton onClick={loadLists} disabled={loading} color="primary">
+              <RefreshIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Box>
+
+      {/* Messaggi */}
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
+
+      {/* Filtri */}
+      <Card sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h6" gutterBottom>Filtri</Typography>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Numero Lista"
+              value={filterListNumber}
+              onChange={(e) => setFilterListNumber(e.target.value)}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <TextField
+              fullWidth
+              label="Numero Ordine"
+              value={filterOrder}
+              onChange={(e) => setFilterOrder(e.target.value)}
+              size="small"
+            />
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Tipo Lista</InputLabel>
+              <Select
+                value={filterListType}
+                label="Tipo Lista"
+                onChange={(e) => setFilterListType(e.target.value)}
+              >
+                <MenuItem value="">Tutti</MenuItem>
+                <MenuItem value="0">Picking</MenuItem>
+                <MenuItem value="1">Refilling</MenuItem>
+                <MenuItem value="2">Inventario</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Stato</InputLabel>
+              <Select
+                value={filterListStatus}
+                label="Stato"
+                onChange={(e) => setFilterListStatus(e.target.value)}
+              >
+                <MenuItem value="">Tutti</MenuItem>
+                <MenuItem value="1">Aperta</MenuItem>
+                <MenuItem value="2">In Corso</MenuItem>
+                <MenuItem value="3">Completata</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={2}>
+            <Stack spacing={1}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleSearch}
+                disabled={loading}
+                startIcon={<SearchIcon />}
+              >
+                Cerca
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleResetFilters}
+                size="small"
+              >
+                Reset
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
+      </Card>
+
+      {/* Tabella Liste */}
+      <Card>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Numero</TableCell>
+                    <TableCell>Descrizione</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell>Stato</TableCell>
+                    <TableCell>Ordine</TableCell>
+                    <TableCell align="right">Righe</TableCell>
+                    <TableCell>Progresso</TableCell>
+                    <TableCell align="center">Azioni</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {lists.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        <Typography variant="body2" color="text.secondary">
+                          Nessuna lista trovata
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    lists.map((list) => {
+                      const progress = calculateProgress(list.listRows);
+                      return (
+                        <TableRow key={list.listHeader.listNumber} hover>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              {list.listHeader.listNumber}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>{list.listHeader.listDescription || '-'}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={getListTypeLabel(list.listHeader.listType)}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={getListStatusLabel(list.listHeader.listStatus)}
+                              size="small"
+                              color={getStatusColor(list.listHeader.listStatus)}
+                            />
+                          </TableCell>
+                          <TableCell>{list.listHeader.orderNumber || '-'}</TableCell>
+                          <TableCell align="right">
+                            <Chip label={list.listRows.length} size="small" color="primary" />
+                          </TableCell>
+                          <TableCell sx={{ width: 200 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={progress}
+                                sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+                              />
+                              <Typography variant="caption">{progress.toFixed(0)}%</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <Stack direction="row" spacing={0.5} justifyContent="center">
+                              <Tooltip title="Dettagli">
+                                <IconButton
+                                  size="small"
+                                  color="info"
+                                  onClick={() => handleViewDetails(list)}
+                                >
+                                  <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Assegna">
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleAssign(list)}
+                                >
+                                  <AssignmentIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Modifica">
+                                <IconButton
+                                  size="small"
+                                  color="primary"
+                                  onClick={() => handleEdit(list)}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Elimina">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDelete(list.listHeader.listNumber)}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50, 100]}
+              component="div"
+              count={totalRecords}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={(e, newPage) => setPage(newPage)}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              labelRowsPerPage="Righe per pagina:"
+            />
+          </>
+        )}
+      </Card>
+
+      {/* Dialog Dettagli */}
+      <Dialog open={detailsDialog} onClose={() => setDetailsDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6">
+              Dettagli Lista: {selectedList?.listHeader.listNumber}
+            </Typography>
+            <IconButton onClick={() => setDetailsDialog(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedList && (
+            <>
+              {/* Header Info */}
+              <Paper sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Informazioni Header
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Descrizione</Typography>
+                    <Typography variant="body2">{selectedList.listHeader.listDescription || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Tipo</Typography>
+                    <Typography variant="body2">{getListTypeLabel(selectedList.listHeader.listType)}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Stato</Typography>
+                    <Typography variant="body2">{getListStatusLabel(selectedList.listHeader.listStatus)}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Ordine</Typography>
+                    <Typography variant="body2">{selectedList.listHeader.orderNumber || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Causa</Typography>
+                    <Typography variant="body2">{selectedList.listHeader.cause || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Priorità</Typography>
+                    <Typography variant="body2">{selectedList.listHeader.priority || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Punto Uscita</Typography>
+                    <Typography variant="body2">{selectedList.listHeader.exitPoint || '-'}</Typography>
+                  </Grid>
+                  <Grid item xs={6} md={3}>
+                    <Typography variant="caption" color="text.secondary">Magazzini</Typography>
+                    <Typography variant="body2">
+                      {selectedList.listHeader.selectedWarehouses?.join(', ') || '-'}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+
+              {/* Righe */}
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                Righe Lista ({selectedList.listRows.length})
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Riga</TableCell>
+                      <TableCell>Articolo</TableCell>
+                      <TableCell>Descrizione</TableCell>
+                      <TableCell align="right">Q.tà Richiesta</TableCell>
+                      <TableCell align="right">Q.tà Evasa</TableCell>
+                      <TableCell>Lotto</TableCell>
+                      <TableCell>Matricola</TableCell>
+                      <TableCell>Scadenza</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {selectedList.listRows.map((row) => (
+                      <TableRow key={row.rowNumber}>
+                        <TableCell>{row.rowNumber}</TableCell>
+                        <TableCell><strong>{row.item}</strong></TableCell>
+                        <TableCell>{row.lineDescription || '-'}</TableCell>
+                        <TableCell align="right">{row.requestedQty}</TableCell>
+                        <TableCell align="right">
+                          <Chip
+                            label={row.processedQty || 0}
+                            size="small"
+                            color={row.processedQty === row.requestedQty ? 'success' : 'warning'}
+                          />
+                        </TableCell>
+                        <TableCell>{row.lot || '-'}</TableCell>
+                        <TableCell>{row.serialNumber || '-'}</TableCell>
+                        <TableCell>{row.expiryDate || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailsDialog(false)}>Chiudi</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog Creazione/Modifica */}
+      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6">
+              {editMode === 'create' ? 'Nuova Lista' : `Modifica Lista: ${formData.listNumber}`}
+            </Typography>
+            <IconButton onClick={() => setEditDialog(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Tabs value={currentTab} onChange={(e, val) => setCurrentTab(val)} sx={{ mb: 2 }}>
+            <Tab label="Header Lista" />
+            <Tab label={`Righe (${rows.length})`} />
+          </Tabs>
+
+          {/* Tab Header */}
+          {currentTab === 0 && (
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Numero Lista *"
+                  value={formData.listNumber}
+                  onChange={(e) => setFormData({ ...formData, listNumber: e.target.value })}
+                  error={!!formErrors.listNumber}
+                  helperText={formErrors.listNumber}
+                  disabled={editMode === 'edit'}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Descrizione"
+                  value={formData.listDescription}
+                  onChange={(e) => setFormData({ ...formData, listDescription: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Tipo Lista *</InputLabel>
+                  <Select
+                    value={formData.listType}
+                    label="Tipo Lista *"
+                    onChange={(e) => setFormData({ ...formData, listType: e.target.value as 0 | 1 | 2 })}
+                  >
+                    <MenuItem value={0}>Picking</MenuItem>
+                    <MenuItem value={1}>Refilling</MenuItem>
+                    <MenuItem value={2}>Inventario</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Stato *</InputLabel>
+                  <Select
+                    value={formData.listStatus}
+                    label="Stato *"
+                    onChange={(e) => setFormData({ ...formData, listStatus: e.target.value as 1 | 2 | 3 })}
+                  >
+                    <MenuItem value={1}>Aperta</MenuItem>
+                    <MenuItem value={2}>In Corso</MenuItem>
+                    <MenuItem value={3}>Completata</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Priorità"
+                  type="number"
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                  inputProps={{ min: 0, max: 100 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Causa"
+                  value={formData.cause}
+                  onChange={(e) => setFormData({ ...formData, cause: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Numero Ordine"
+                  value={formData.orderNumber}
+                  onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Punto Uscita"
+                  value={formData.exitPoint}
+                  onChange={(e) => setFormData({ ...formData, exitPoint: e.target.value })}
+                />
+              </Grid>
+            </Grid>
+          )}
+
+          {/* Tab Righe */}
+          {currentTab === 1 && (
+            <>
+              <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="subtitle1">
+                  Righe Lista ({rows.length})
+                </Typography>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddCircleIcon />}
+                  onClick={handleAddRow}
+                >
+                  Aggiungi Riga
+                </Button>
+              </Box>
+              {formErrors.rows && (
+                <Alert severity="error" sx={{ mb: 2 }}>{formErrors.rows}</Alert>
+              )}
+              <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>N.</TableCell>
+                      <TableCell>Articolo *</TableCell>
+                      <TableCell>Descrizione</TableCell>
+                      <TableCell>Q.tà *</TableCell>
+                      <TableCell>Lotto</TableCell>
+                      <TableCell>Matricola</TableCell>
+                      <TableCell>Azioni</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {rows.map((row, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>{idx + 1}</TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            value={row.item}
+                            onChange={(e) => handleRowChange(idx, 'item', e.target.value)}
+                            error={!!formErrors[`row_${idx}_item`]}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            value={row.lineDescription}
+                            onChange={(e) => handleRowChange(idx, 'lineDescription', e.target.value)}
+                            fullWidth
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            type="number"
+                            value={row.requestedQty}
+                            onChange={(e) => handleRowChange(idx, 'requestedQty', parseFloat(e.target.value) || 0)}
+                            error={!!formErrors[`row_${idx}_qty`]}
+                            inputProps={{ min: 0 }}
+                            sx={{ width: 100 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            value={row.lot}
+                            onChange={(e) => handleRowChange(idx, 'lot', e.target.value)}
+                            sx={{ width: 100 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <TextField
+                            size="small"
+                            value={row.serialNumber}
+                            onChange={(e) => handleRowChange(idx, 'serialNumber', e.target.value)}
+                            sx={{ width: 100 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleRemoveRow(idx)}
+                            disabled={rows.length === 1}
+                          >
+                            <RemoveCircleIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialog(false)} disabled={loading}>
+            Annulla
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={loading}
+            startIcon={loading ? <CircularProgress size={16} /> : <SaveIcon />}
+          >
+            {editMode === 'create' ? 'Crea Lista' : 'Salva Modifiche'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog Assegnazione Lista */}
+      <AssignListModal
+        open={assignDialog}
+        onClose={() => setAssignDialog(false)}
+        list={listToAssign}
+        onAssignSuccess={handleAssignSuccess}
+      />
+    </Box>
+  );
+};
+
+export default ListsManagementPageComplete;

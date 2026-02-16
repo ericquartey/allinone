@@ -1,0 +1,230 @@
+{
+  "destinationGroups": [
+    {
+      "id": 10,
+      "machineId": 2,
+      "baysLocations": [
+        {
+          "number": 1
+        },
+        {
+          "number": 2
+        }
+      ]
+    }
+  ],
+  "barcodeRules": [
+    {
+      "action": "FilterItems",
+      "contextName": "ItemsSearch",
+      "id": 1,
+      "pattern": "ITEM_(?<ItemCode>[0-9A-Za-z]+)_FILTER"
+    },
+    {
+      "action": "PickItem",
+      "contextName": "ItemsSearch",
+      "id": 2,
+      "pattern": "ITEM_(?<ItemCode>[0-9A-Za-z]+)_QTY(?<ItemQuantity>[0-9]+)_PICK"
+    },
+    {
+      "action": "FilterLists",
+      "contextName": "ListSearch",
+      "id": 3,
+      "pattern": "LIST_(?<ListId>[0-9]+)_FILTER"
+    },
+    {
+      "action": "ExecuteList",
+      "contextName": "ListSearch",
+      "id": 4,
+      "pattern": "LIST_(?<ListId>[0-9]+)_EXEC"
+    },
+    {
+      "action": "LoginUser",
+      "contextName": "Login",
+      "id": 5,
+      "pattern": "(?<BearerToken>[a-zA-Z0-9]+)"
+    }
+  ],
+  "loadingUnits": [
+    {
+      "Id": 2001,
+      "Width": 4000,
+      "Depth": 700,
+      "AreaFillRate": 0.98
+    },
+    {
+      "Id": 2002,
+      "Width": 4000,
+      "Depth": 700,
+      "AreaFillRate": 0.98
+    }
+  ],
+  "users": [
+    {
+      "name": "OPERATOR",
+      "password": "password",
+      "accessLevel": "User"
+    },
+    {
+      "name": "INSTALLER",
+      "password": "password",
+      "accessLevel": "SuperUser",
+      "token": "6275980414107844721ì99125013800000000"
+    },
+    {
+      "name": "GUEST",
+      "password": "password",
+      "token": "USER#123456#",
+      "accessLevel": "SuperUser"
+    }
+  ],
+  "items": [
+    {
+      "id": 1,
+      "code": "FE8AFA5A",
+      "description": "Anna Karenina [Leo Tolstoy]",
+      "measureUnitDescription": "unità",
+      "averageWeight": 382,
+      "quantitySignificantFigures": 0,
+      "note": "Copertina rigida",
+      "abcClassDescription": "A"
+    },
+    {
+      "id": 2,
+      "code": "B8450BDD",
+      "description": "Madame Bovary [Gustav Flaubert]",
+      "measureUnitDescription": "unità",
+      "averageWeight": 382,
+      "quantitySignificantFigures": 0,
+      "note": "Codice di riferimento per ordini: 5920950",
+      "abcClassDescription": "B"
+    },
+    {
+      "id": 3,
+      "code": "D24ADD20",
+      "description": "War and Peace [Leo Tolstoy]",
+      "measureUnitDescription": "unità",
+      "averageWeight": 382,
+      "quantitySignificantFigures": 0,
+      "abcClassDescription": "A"
+    }
+  ],
+  "itemLists": [
+    {
+      "code": "P#001",
+      "id": 1,
+      "description": "Ordine Mar-Apr Feltrinelli",
+      "isDispatchable": true,
+      "itemListType": "Pick",
+      "machines": [
+        {
+          "id": 2,
+          "nickName": "VMag-2",
+          "status": "Executing"
+        }
+      ]
+    },
+    {
+      "code": "P#002",
+      "id": 2,
+      "description": "Ordine Mar IBS.it",
+      "isDispatchable": true,
+      "itemListType": "Pick",
+      "machines": [
+        {
+          "id": 2,
+          "nickName": "VMag-2",
+          "status": "OnHold"
+        }
+      ]
+    }
+  ],
+  "itemListRows": [
+    {
+      "id": 1,
+      "code": "R1",
+      "itemId": 1,
+      "itemListId": 1,
+      "requestedQuantity": 10
+    },
+    {
+      "id": 2,
+      "code": "R2",
+      "itemId": 2,
+      "itemListId": 1,
+      "requestedQuantity": 20
+    }
+  ],
+  "missionOperations": [
+    {
+      "id": 1,
+      "itemId": "1",
+      "itemCode": "FE8AFA5A",
+      "quantity": 5,
+      "destinationGroupId": 10,
+      "operationType": "Pick",
+      "status": "Pending",
+      "createdAt": "2025-12-24T22:23:46.088Z"
+    },
+    {
+      "id": 2,
+      "itemId": 1,
+      "itemCode": "FE8AFA5A",
+      "quantity": 10,
+      "destinationGroupId": 10,
+      "operationType": "Pick",
+      "status": "Pending",
+      "createdAt": "2025-12-24T22:24:13.150Z"
+    },
+    {
+      "id": 3,
+      "itemId": 2,
+      "itemCode": "B8450BDD",
+      "quantity": 20,
+      "destinationGroupId": 10,
+      "operationType": "Pick",
+      "status": "Pending",
+      "createdAt": "2025-12-24T22:24:13.151Z"
+    }
+  ],
+  "areas": [
+    {
+      "id": 1,
+      "code": "AREA01",
+      "description": "Area Principale",
+      "areaType": "Storage"
+    }
+  ],
+  "compartments": [
+    {
+      "id": 1,
+      "code": "COMP001",
+      "areaId": 1,
+      "capacity": 100
+    }
+  ],
+  "machines": [
+    {
+      "id": 1,
+      "nickName": "VMag-1",
+      "status": "Online",
+      "machineType": "VerticalWarehouse"
+    },
+    {
+      "id": 2,
+      "nickName": "VMag-2",
+      "status": "Online",
+      "machineType": "VerticalWarehouse"
+    }
+  ],
+  "printers": [
+    {
+      "id": 1,
+      "name": "Printer01",
+      "ipAddress": "192.168.1.100",
+      "status": "Online"
+    }
+  ],
+  "products": [],
+  "putToLightData": []
+}

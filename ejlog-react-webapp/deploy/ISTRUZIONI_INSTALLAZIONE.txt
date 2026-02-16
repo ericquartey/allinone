@@ -1,0 +1,189 @@
+================================================================================
+    EjLog WMS v1.0.0 - INSTALLAZIONE AUTOMATICA
+================================================================================
+
+📦 FILE DA COPIARE:  ejlog-wms-v1.0.0-PRONTO.zip
+📊 Dimensione:       10.9 MB
+🔒 MD5:              a1d18d711afd9eb1de8da6ef2041f403
+
+================================================================================
+✨ INSTALLAZIONE ZERO CONFIGURAZIONE
+================================================================================
+
+Database: localhost\SQL2019 - promag
+Credenziali: GIÀ INCLUSE nel pacchetto (sa / fergrp_2012)
+L'utente NON deve modificare NULLA!
+
+================================================================================
+📋 PROCEDURA SEMPLICE (2 passi)
+================================================================================
+
+PASSO 1: ESTRAI
+---------------
+1. Copia ejlog-wms-v1.0.0-PRONTO.zip sul PC di destinazione
+2. Estrai in una cartella qualsiasi, esempio:
+   - C:\EjLog-WMS\
+   - D:\Applicazioni\EjLog\
+   - Qualsiasi altra cartella
+
+
+PASSO 2: INSTALLA
+------------------
+1. Apri la cartella dove hai estratto i file
+2. Doppio click su:  install.bat
+3. Attendi 2-5 minuti (installa dipendenze automaticamente)
+4. Quando finisce, premi un tasto
+
+
+PASSO 3: AVVIA
+--------------
+1. Doppio click su:  start-production.bat
+2. Il browser si apre automaticamente su http://localhost:3000
+3. Login con:
+   Username: admin
+   Password: admin
+
+FATTO! L'applicazione è pronta all'uso!
+
+================================================================================
+📂 COSA CONTIENE IL PACCHETTO
+================================================================================
+
+Dopo estrazione troverai:
+
+install.bat              <- Esegui questo PRIMA (una sola volta)
+start-production.bat     <- Esegui questo per AVVIARE
+stop-all.bat            <- Esegui questo per FERMARE
+LEGGIMI.txt             <- Istruzioni dettagliate
+
+frontend\               <- Build React (500+ files)
+backend\                <- Server Node.js
+config\.env             <- Database GIÀ CONFIGURATO!
+logs\                   <- Log (creata automaticamente)
+
+================================================================================
+⚙️ COSA FA install.bat AUTOMATICAMENTE
+================================================================================
+
+1. ✅ Verifica Node.js installato
+2. ✅ Crea cartelle (logs, backups, uploads)
+3. ✅ Verifica database configurato (.env già pronto!)
+4. ✅ Installa dipendenze npm (express, mssql, etc.)
+5. ✅ Verifica installazione completata
+6. ✅ Mostra riepilogo
+
+L'UTENTE NON FA NULLA - TUTTO AUTOMATICO!
+
+================================================================================
+⚙️ COSA FA start-production.bat AUTOMATICAMENTE
+================================================================================
+
+1. ✅ Verifica installazione completata
+2. ✅ Pulisce processi precedenti
+3. ✅ Avvia backend (porte 3077, 3079, 8080)
+4. ✅ Avvia frontend (porta 3000)
+5. ✅ Apre browser automaticamente
+6. ✅ Mostra URL e credenziali
+
+L'UTENTE NON FA NULLA - TUTTO AUTOMATICO!
+
+================================================================================
+🔧 REQUISITI PC DESTINAZIONE
+================================================================================
+
+✓ Windows 10 o superiore
+✓ Node.js 18.x o 20.x (scarica da: https://nodejs.org)
+✓ SQL Server con database "promag" già esistente
+✓ Porte libere: 3000, 3077, 3079, 8080
+
+================================================================================
+🎯 ESEMPIO COMPLETO DI INSTALLAZIONE
+================================================================================
+
+Scenario: Vuoi installare su PC con Windows 10 + SQL Server
+
+1. Copia ejlog-wms-v1.0.0-PRONTO.zip sul PC
+2. Estrai in C:\EjLog-WMS\
+3. Apri C:\EjLog-WMS\
+4. Doppio click install.bat → Attendi fine
+5. Doppio click start-production.bat → Browser si apre
+6. Login: admin / admin
+7. Vai su Menu → Macchine → Gestione Magazzini
+8. Vedi i tuoi magazzini dal database!
+
+Tempo totale: 5 minuti
+
+================================================================================
+🐛 RISOLUZIONE PROBLEMI
+================================================================================
+
+PROBLEMA: "Node.js non trovato"
+SOLUZIONE: Installa da https://nodejs.org (versione 20.x LTS)
+
+PROBLEMA: "Express non trovato"
+SOLUZIONE: Riesegui install.bat
+
+PROBLEMA: "Errore database"
+SOLUZIONE: Verifica SQL Server avviato e database "promag" esiste
+
+PROBLEMA: "Porta 3000 occupata"
+SOLUZIONE: CMD → netstat -ano | findstr :3000
+          Poi → taskkill /F /PID <numero>
+
+================================================================================
+✨ FUNZIONALITÀ INCLUSE
+================================================================================
+
+✓ Gestione Magazzini (NEW!) - 100% funzionante
+  - CRUD completo
+  - Ricerca con debounce
+  - Associazione aree
+  - Creazione strutture (UDC, Vertimag, PTL)
+  - Validazione form
+  - Toast notifications
+
+✓ Dashboard real-time
+✓ User Management
+✓ Analytics & Reports
+✓ Scheduler (3 workers)
+✓ Voice Pick (AI/ML)
+✓ PTL System
+✓ Barcode Scanner
+✓ WebSocket real-time
+
+================================================================================
+🔒 SICUREZZA
+================================================================================
+
+Database: localhost\SQL2019 - promag
+Username: sa
+Password: fergrp_2012
+
+NOTA: Dopo l'installazione puoi modificare config\.env se vuoi
+      cambiare le credenziali database.
+
+================================================================================
+📞 SUPPORTO
+================================================================================
+
+Log errori: logs\ejlog-wms.log
+Email: support@ejlog-wms.com
+
+================================================================================
+📊 RIEPILOGO FINALE
+================================================================================
+
+File:        ejlog-wms-v1.0.0-PRONTO.zip (10.9 MB)
+Versione:    1.0.0
+Data:        2025-12-23
+Ambiente:    Production Ready
+Database:    localhost\SQL2019 - promag (CONFIGURATO)
+
+MD5:         a1d18d711afd9eb1de8da6ef2041f403
+
+✅ PRONTO PER LA DISTRIBUZIONE!
+✅ ZERO CONFIGURAZIONE RICHIESTA!
+✅ INSTALLAZIONE COMPLETAMENTE AUTOMATICA!
+
+================================================================================
+

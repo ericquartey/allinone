@@ -1,0 +1,563 @@
+// ============================================================================
+// EJLOG WMS - List Management Page
+// Gestione avanzata liste lavoro con creazione, modifica e monitoraggio
+// ============================================================================
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Card from '../../../components/shared/Card';
+import Button from '../../../components/shared/Button';
+import Table from '../../../components/shared/Table';
+import Badge from '../../../components/shared/Badge';
+import Spinner from '../../../components/shared/Spinner';
+
+// Mock data - sostituire con chiamate API reali
+const mockLists = [
+  {
+    id: 1,
+    code: 'P001',
+    type: 'PICKING',
+    status: 'IN_PROGRESS',
+    priority: 10,
+    assignedWorkstation: 'WS001',
+    assignedOperator: 'Mario Rossi',
+    totalItems: 25,
+    completedItems: 10,
+    createdDate: '2025-11-20T08:00:00',
+    startedDate: '2025-11-20T09:00:00',
+    expectedEndDate: '2025-11-20T12:00:00',
+    zone: 'ZONA_A',
+  },
+  {
+    id: 2,
+    code: 'R005',
+    type: 'REFILLING',
+    status: 'IN_PROGRESS',
+    priority: 5,
+    assignedWorkstation: 'WS002',
+    assignedOperator: 'Laura Bianchi',
+    totalItems: 15,
+    completedItems: 12,
+    createdDate: '2025-11-20T07:30:00',
+    startedDate: '2025-11-20T08:30:00',
+    expectedEndDate: '2025-11-20T11:00:00',
+    zone: 'ZONA_B',
+  },
+  {
+    id: 3,
+    code: 'P002',
+    type: 'PICKING',
+    status: 'PENDING',
+    priority: 8,
+    assignedWorkstation: null,
+    assignedOperator: null,
+    totalItems: 30,
+    completedItems: 0,
+    createdDate: '2025-11-20T09:00:00',
+    startedDate: null,
+    expectedEndDate: '2025-11-20T14:00:00',
+    zone: 'ZONA_A',
+  },
+  {
+    id: 4,
+    code: 'INV12',
+    type: 'INVENTORY',
+    status: 'COMPLETED',
+    priority: 3,
+    assignedWorkstation: 'WS003',
+    assignedOperator: 'Giuseppe Verdi',
+    totalItems: 50,
+    completedItems: 50,
+    createdDate: '2025-11-19T14:00:00',
+    startedDate: '2025-11-19T15:00:00',
+    expectedEndDate: '2025-11-19T18:00:00',
+    completedDate: '2025-11-19T17:45:00',
+    zone: 'ZONA_C',
+  },
+  {
+    id: 5,
+    code: 'P003',
+    type: 'PICKING',
+    status: 'SUSPENDED',
+    priority: 7,
+    assignedWorkstation: 'WS004',
+    assignedOperator: 'Anna Russo',
+    totalItems: 20,
+    completedItems: 5,
+    createdDate: '2025-11-20T06:00:00',
+    startedDate: '2025-11-20T07:00:00',
+    expectedEndDate: '2025-11-20T10:00:00',
+    zone: 'ZONA_A',
+    suspendReason: 'Articolo non disponibile',
+  },
+];
+
+const ListManagementPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [typeFilter, setTypeFilter] = useState<string>('ALL');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const isLoading = false; // Replace with real loading state
+
+  // Filter logic
+  const filteredLists = mockLists.filter((list) => {
+    const matchesSearch =
+      list.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (list.assignedOperator?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+
+    const matchesStatus = statusFilter === 'ALL' || list.status === statusFilter;
+    const matchesType = typeFilter === 'ALL' || list.type === typeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Badge variant="warning">DA ESEGUIRE</Badge>;
+      case 'IN_PROGRESS':
+        return <Badge variant="primary">IN CORSO</Badge>;
+      case 'SUSPENDED':
+        return <Badge variant="danger">SOSPESA</Badge>;
+      case 'COMPLETED':
+        return <Badge variant="success">COMPLETATA</Badge>;
+      case 'CANCELLED':
+        return <Badge variant="secondary">ANNULLATA</Badge>;
+      default:
+        return <Badge variant="info">{status}</Badge>;
+    }
+  };
+
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'PICKING':
+        return <Badge variant="primary">PICKING</Badge>;
+      case 'REFILLING':
+        return <Badge variant="success">STOCCAGGIO</Badge>;
+      case 'INVENTORY':
+        return <Badge variant="info">INVENTARIO</Badge>;
+      case 'TRANSFER':
+        return <Badge variant="warning">TRASFERIMENTO</Badge>;
+      default:
+        return <Badge variant="secondary">{type}</Badge>;
+    }
+  };
+
+  const getProgressPercentage = (completed: number, total: number) => {
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  };
+
+  const handleStartList = (listId: number) => {
+    alert(`Avvio lista ID: ${listId}`);
+  };
+
+  const handleSuspendList = (listId: number) => {
+    alert(`Sospensione lista ID: ${listId}`);
+  };
+
+  const handleCancelList = (listId: number) => {
+    if (confirm('Sei sicuro di voler annullare questa lista?')) {
+      alert(`Lista ID ${listId} annullata`);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Gestione Liste</h1>
+          <p className="text-gray-600 mt-1">
+            Amministrazione e monitoraggio liste di lavoro - {filteredLists.length} risultati
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => navigate('/lists/templates')}>
+            Template Liste
+          </Button>
+          <Button onClick={() => setShowCreateModal(true)}>Crea Nuova Lista</Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-5 gap-4">
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Totale</p>
+            <p className="text-3xl font-bold text-blue-600">{mockLists.length}</p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Da Eseguire</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {mockLists.filter((l) => l.status === 'PENDING').length}
+            </p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">In Corso</p>
+            <p className="text-3xl font-bold text-blue-600">
+              {mockLists.filter((l) => l.status === 'IN_PROGRESS').length}
+            </p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Sospese</p>
+            <p className="text-3xl font-bold text-red-600">
+              {mockLists.filter((l) => l.status === 'SUSPENDED').length}
+            </p>
+          </div>
+        </Card>
+        <Card>
+          <div className="text-center">
+            <p className="text-sm text-gray-600">Completate</p>
+            <p className="text-3xl font-bold text-green-600">
+              {mockLists.filter((l) => l.status === 'COMPLETED').length}
+            </p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cerca Lista
+            </label>
+            <input
+              type="text"
+              placeholder="Codice lista o operatore..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Stato</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="ALL">Tutti gli stati</option>
+              <option value="PENDING">Da Eseguire</option>
+              <option value="IN_PROGRESS">In Corso</option>
+              <option value="SUSPENDED">Sospesa</option>
+              <option value="COMPLETED">Completata</option>
+              <option value="CANCELLED">Annullata</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo Lista
+            </label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="ALL">Tutti i tipi</option>
+              <option value="PICKING">Picking</option>
+              <option value="REFILLING">Stoccaggio</option>
+              <option value="INVENTORY">Inventario</option>
+              <option value="TRANSFER">Trasferimento</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+
+      {/* Lists Table */}
+      <Card>
+        <div className="mb-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Liste di Lavoro</h2>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('ALL');
+                setTypeFilter('ALL');
+              }}
+            >
+              Reset Filtri
+            </Button>
+            <Button size="sm" variant="ghost">
+              Esporta Excel
+            </Button>
+          </div>
+        </div>
+
+        {filteredLists.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-lg">Nessuna lista trovata</p>
+            <p className="text-sm mt-2">Prova a modificare i filtri di ricerca</p>
+          </div>
+        ) : (
+          <Table
+            columns={[
+              {
+                key: 'code',
+                label: 'Codice',
+                render: (row) => (
+                  <button
+                    className="text-blue-600 hover:underline font-semibold"
+                    onClick={() => navigate(`/lists/${row.id}/detail`)}
+                  >
+                    {row.code}
+                  </button>
+                ),
+              },
+              {
+                key: 'type',
+                label: 'Tipo',
+                render: (row) => getTypeBadge(row.type),
+              },
+              {
+                key: 'status',
+                label: 'Stato',
+                render: (row) => getStatusBadge(row.status),
+              },
+              {
+                key: 'priority',
+                label: 'Priorità',
+                render: (row) => (
+                  <span
+                    className={`font-semibold ${
+                      row.priority >= 8
+                        ? 'text-red-600'
+                        : row.priority >= 5
+                        ? 'text-yellow-600'
+                        : 'text-green-600'
+                    }`}
+                  >
+                    {row.priority}
+                  </span>
+                ),
+              },
+              {
+                key: 'progress',
+                label: 'Progresso',
+                render: (row) => {
+                  const percentage = getProgressPercentage(row.completedItems, row.totalItems);
+                  return (
+                    <div className="w-full">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>
+                          {row.completedItems}/{row.totalItems}
+                        </span>
+                        <span className="font-semibold">{percentage}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${
+                            percentage === 100
+                              ? 'bg-green-500'
+                              : percentage >= 50
+                              ? 'bg-blue-500'
+                              : 'bg-yellow-500'
+                          }`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                },
+              },
+              {
+                key: 'assignedOperator',
+                label: 'Operatore',
+                render: (row) =>
+                  row.assignedOperator ? (
+                    <span className="font-semibold">{row.assignedOperator}</span>
+                  ) : (
+                    <span className="text-gray-400">Non assegnato</span>
+                  ),
+              },
+              {
+                key: 'zone',
+                label: 'Zona',
+                render: (row) => <span className="font-semibold">{row.zone}</span>,
+              },
+              {
+                key: 'createdDate',
+                label: 'Creata',
+                render: (row) => (
+                  <span className="text-sm text-gray-600">
+                    {new Date(row.createdDate).toLocaleString()}
+                  </span>
+                ),
+              },
+              {
+                key: 'actions',
+                label: 'Azioni',
+                render: (row) => (
+                  <div className="flex gap-2">
+                    {row.status === 'PENDING' && (
+                      <Button size="sm" onClick={() => handleStartList(row.id)}>
+                        Avvia
+                      </Button>
+                    )}
+                    {row.status === 'IN_PROGRESS' && (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/lists/${row.id}/execute/${row.type.toLowerCase()}`)
+                          }
+                        >
+                          Esegui
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="warning"
+                          onClick={() => handleSuspendList(row.id)}
+                        >
+                          Sospendi
+                        </Button>
+                      </>
+                    )}
+                    {row.status === 'SUSPENDED' && (
+                      <Button size="sm" onClick={() => handleStartList(row.id)}>
+                        Riprendi
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => navigate(`/lists/${row.id}/detail`)}
+                    >
+                      Dettagli
+                    </Button>
+                    {(row.status === 'PENDING' || row.status === 'SUSPENDED') && (
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => handleCancelList(row.id)}
+                      >
+                        Annulla
+                      </Button>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
+            data={filteredLists}
+          />
+        )}
+      </Card>
+
+      {/* Create List Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Crea Nuova Lista</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tipo Lista *
+                </label>
+                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Seleziona tipo...</option>
+                  <option value="PICKING">Picking</option>
+                  <option value="REFILLING">Stoccaggio</option>
+                  <option value="INVENTORY">Inventario</option>
+                  <option value="TRANSFER">Trasferimento</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priorità *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  defaultValue="5"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Zona Magazzino *
+                </label>
+                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Seleziona zona...</option>
+                  <option value="ZONA_A">Zona A</option>
+                  <option value="ZONA_B">Zona B</option>
+                  <option value="ZONA_C">Zona C</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Template (opzionale)
+                </label>
+                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="">Nessun template</option>
+                  <option value="1">Template Picking Standard</option>
+                  <option value="2">Template Stoccaggio Rapido</option>
+                  <option value="3">Template Inventario Completo</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Note
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  placeholder="Note aggiuntive..."
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setShowCreateModal(false)}>
+                Annulla
+              </Button>
+              <Button
+                onClick={() => {
+                  alert('Lista creata con successo!');
+                  setShowCreateModal(false);
+                }}
+              >
+                Crea Lista
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ListManagementPage;

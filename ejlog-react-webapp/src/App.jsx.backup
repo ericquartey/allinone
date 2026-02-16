@@ -1,0 +1,49 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import MainLayout from './components/layout/MainLayout';
+import LoginPage from './components/auth/LoginPage';
+import PrivateRoute from './components/auth/PrivateRoute';
+import Dashboard from './pages/Dashboard';
+import ItemsPage from './pages/ItemsPage';
+import ListsPage from './pages/ListsPage';
+import StockPage from './pages/StockPage';
+import useAuthStore from './stores/authStore';
+
+function App() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route
+        path="/login"
+        element={
+          isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/"
+        element={
+          <PrivateRoute>
+            <MainLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="items" element={<ItemsPage />} />
+        <Route path="lists" element={<ListsPage />} />
+        <Route path="stock" element={<StockPage />} />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+
+      {/* Catch all */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+}
+
+export default App;

@@ -1,0 +1,77 @@
+<testsuites id="" name="" tests="1" failures="1" skipped="0" errors="0" time="82.10629700000001">
+<testsuite name="ppc-drawer-present-debug.spec.ts" timestamp="2026-01-21T00:29:57.583Z" hostname="chromium" tests="1" failures="1" skipped="0" time="20.114" errors="0">
+<testcase name="PPC drawer-present shows EJLOG compartments for drawer 2" classname="ppc-drawer-present-debug.spec.ts" time="20.114">
+<failure message="ppc-drawer-present-debug.spec.ts:3:1 PPC drawer-present shows EJLOG compartments for drawer 2" type="FAILURE">
+<![CDATA[  [chromium] › ppc-drawer-present-debug.spec.ts:3:1 › PPC drawer-present shows EJLOG compartments for drawer 2 
+
+    Error: Nessuna risposta /api/udc/{id}/compartments intercettata. Verifica che il backend sia attivo.
+
+      20 |
+      21 |   if (responses.length === 0) {
+    > 22 |     throw new Error('Nessuna risposta /api/udc/{id}/compartments intercettata. Verifica che il backend sia attivo.');
+         |           ^
+      23 |   }
+      24 |
+      25 |   const last = responses[responses.length - 1];
+        at C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\tests\e2e\ppc-drawer-present-debug.spec.ts:22:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Nessuna risposta /api/udc/{id}/compartments intercettata. Verifica che il backend sia attivo.
+
+      20 |
+      21 |   if (responses.length === 0) {
+    > 22 |     throw new Error('Nessuna risposta /api/udc/{id}/compartments intercettata. Verifica che il backend sia attivo.');
+         |           ^
+      23 |   }
+      24 |
+      25 |   const last = responses[responses.length - 1];
+        at C:\F_WMS\dev\workspacesEjlog\EjLog\documentazioni\ejlog-react-webapp\tests\e2e\ppc-drawer-present-debug.spec.ts:22:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace ..\..\test-results\artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\error-context.md]]
+
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium\trace.zip]]
+
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\ppc-drawer-present-debug-P-65632-G-compartments-for-drawer-2-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

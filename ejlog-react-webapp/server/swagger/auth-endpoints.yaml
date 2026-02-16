@@ -1,0 +1,532 @@
+# ============================================
+# SEZIONE AUTENTICAZIONE SWAGGER
+# ============================================
+# Questa sezione va integrata nel file swagger.yaml principale
+# oppure può essere usata standalone per documentare gli endpoint auth
+#
+# Autore: Agent Swaggy (Swaggy Routing Architect)
+# Data: 2025-12-04
+# Versione: 2.0.0
+# ============================================
+
+# Security Schemes (da aggiungere in components/securitySchemes)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token ottenuto tramite login.
+
+        Inserire il token nel formato: Bearer <token>
+
+        Esempio:
+        ```
+        Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        ```
+
+        Il token scade dopo 8 ore (configurabile).
+
+  # Schemas per autenticazione
+  schemas:
+    # ========================================
+    # LOGIN SCHEMAS
+    # ========================================
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: Username (lettere, numeri, underscore, trattino)
+          example: superuser
+        password:
+          type: string
+          minLength: 6
+          maxLength: 100
+          format: password
+          description: Password (minimo 6 caratteri)
+          example: promag31
+      example:
+        username: superuser
+        password: promag31
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se il login è riuscito
+          example: true
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        token:
+          type: string
+          description: JWT token per autenticare le richieste successive
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjk5OTk5OSwidXNlcm5hbWUiOiJzdXBlcnVzZXIiLCJncm91cElkIjowLCJncm91cExldmVsIjowLCJpc0hhcmRjb2RlZCI6dHJ1ZSwiaWF0IjoxNzAxNjk2MDAwLCJleHAiOjE3MDE3MjQ4MDAsImlzcyI6ImVqbG9nLWFwaSIsImF1ZCI6ImVqbG9nLWZyb250ZW5kIn0.abc123...
+        expiresIn:
+          type: string
+          description: Durata validità token
+          example: 8h
+        message:
+          type: string
+          description: Messaggio descrittivo
+          example: Login effettuato con successo
+        isSuperuser:
+          type: boolean
+          description: Indica se l'utente è superuser
+          example: true
+        isHardcoded:
+          type: boolean
+          description: Indica se l'utente è hardcoded (solo sviluppo)
+          example: true
+      example:
+        success: true
+        user:
+          id: 999999
+          username: superuser
+          groupId: 0
+          groupName: SUPERUSERS
+          groupLevel: 0
+          languageId: 1
+          barcode: DEV-SU-2025
+        token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn: 8h
+        message: Login effettuato con successo (hardcoded dev user)
+        isSuperuser: true
+        isHardcoded: true
+
+    UserProfile:
+      type: object
+      description: Profilo utente autenticato
+      properties:
+        id:
+          type: integer
+          description: ID univoco utente
+          example: 999999
+        username:
+          type: string
+          description: Username
+          example: superuser
+        groupId:
+          type: integer
+          description: ID gruppo di appartenenza
+          example: 0
+        groupName:
+          type: string
+          description: Nome gruppo
+          example: SUPERUSERS
+        groupLevel:
+          type: integer
+          description: Livello di privilegi (0 = massimo, 3 = minimo)
+          example: 0
+        languageId:
+          type: integer
+          description: ID lingua predefinita
+          example: 1
+        barcode:
+          type: string
+          nullable: true
+          description: Barcode badge utente
+          example: DEV-SU-2025
+
+    # ========================================
+    # LOGOUT SCHEMAS
+    # ========================================
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logout effettuato con successo
+
+    # ========================================
+    # TOKEN VERIFICATION SCHEMAS
+    # ========================================
+
+    VerifyTokenResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          description: Indica se il token è valido
+          example: true
+        user:
+          type: object
+          properties:
+            userId:
+              type: integer
+              example: 999999
+            username:
+              type: string
+              example: superuser
+            groupId:
+              type: integer
+              example: 0
+            groupLevel:
+              type: integer
+              example: 0
+            isHardcoded:
+              type: boolean
+              example: true
+        expiresAt:
+          type: string
+          format: date-time
+          description: Data/ora scadenza token (ISO 8601)
+          example: 2025-12-04T18:00:00Z
+
+    # ========================================
+    # PASSWORD HINT SCHEMAS
+    # ========================================
+
+    PasswordHintResponse:
+      type: object
+      properties:
+        hint:
+          type: string
+          description: Hint password dinamica per oggi
+          example: Password superuser per oggi (4/12) promag27
+        formula:
+          type: string
+          description: Formula calcolo password
+          example: promag + (31 - giorno_corrente)
+        example:
+          type: string
+          description: Esempio di calcolo
+          example: 31 - 4 = 27 → promag27
+        hardcodedPassword:
+          type: string
+          description: Password hardcoded per sviluppo
+          example: promag31
+        note:
+          type: string
+          description: Nota per sviluppatori
+          example: In sviluppo, usa sempre superuser / promag31
+
+    # ========================================
+    # ERROR SCHEMAS
+    # ========================================
+
+    AuthErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Messaggio di errore
+          example: Username o password non validi
+        hint:
+          type: string
+          description: Suggerimento (solo sviluppo)
+          example: Password corretta per oggi promag27
+        devNote:
+          type: string
+          description: Nota per sviluppatori (solo sviluppo)
+          example: In sviluppo usa sempre superuser / promag31
+
+# ============================================
+# PATHS (ENDPOINTS)
+# ============================================
+
+paths:
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login utente con JWT
+      description: |
+        Autentica un utente e restituisce un JWT token.
+
+        ## Tipi di Autenticazione
+
+        ### 1. Superuser Hardcoded (SOLO SVILUPPO)
+        - Username: `superuser`
+        - Password: `promag31` (fissa)
+        - Restituisce `isHardcoded: true`
+        - Disponibile solo con NODE_ENV=development
+
+        ### 2. Superuser Dinamico (PRODUZIONE)
+        - Username: `superuser`
+        - Password: `promag + (31 - giorno_corrente)`
+        - Esempio: 4 dicembre → `promag27`
+        - Query database per dati completi
+
+        ### 3. Utenti Normali
+        - Username: qualsiasi utente nel database
+        - Password: confronto con hash MD5 salvato
+
+        ## JWT Token
+
+        Il token restituito deve essere inviato in tutte le richieste successive:
+        ```
+        Authorization: Bearer <token>
+        ```
+
+        Scadenza token: 8 ore (configurabile)
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              superuser-hardcoded:
+                summary: Superuser hardcoded (dev)
+                value:
+                  username: superuser
+                  password: promag31
+              superuser-dynamic:
+                summary: Superuser dinamico (prod)
+                value:
+                  username: superuser
+                  password: promag27
+              normal-user:
+                summary: Utente normale
+                value:
+                  username: operatore1
+                  password: password123
+      responses:
+        '200':
+          description: Login effettuato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                superuser-success:
+                  summary: Login superuser riuscito
+                  value:
+                    success: true
+                    user:
+                      id: 999999
+                      username: superuser
+                      groupId: 0
+                      groupName: SUPERUSERS
+                      groupLevel: 0
+                      languageId: 1
+                      barcode: DEV-SU-2025
+                    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    expiresIn: 8h
+                    message: Login effettuato con successo (hardcoded dev user)
+                    isSuperuser: true
+                    isHardcoded: true
+        '400':
+          description: Richiesta non valida (validazione fallita)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+              examples:
+                missing-username:
+                  summary: Username mancante
+                  value:
+                    success: false
+                    error: Username obbligatorio
+                short-password:
+                  summary: Password troppo corta
+                  value:
+                    success: false
+                    error: Password troppo corta (minimo 6 caratteri)
+        '401':
+          description: Credenziali non valide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+              examples:
+                invalid-credentials:
+                  summary: Credenziali errate
+                  value:
+                    success: false
+                    error: Username o password non validi
+                wrong-superuser-password:
+                  summary: Password superuser errata (dev)
+                  value:
+                    success: false
+                    error: Password non valida per superuser
+                    hint: Password corretta per oggi promag27
+                    devNote: In sviluppo usa sempre superuser / promag31
+        '429':
+          description: Troppi tentativi (se rate limiting attivo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+              example:
+                success: false
+                error: Troppi tentativi di login, riprova tra 15 minuti
+        '500':
+          description: Errore interno del server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+              example:
+                success: false
+                error: Errore del server durante il login
+                details: Database connection failed
+
+  /api/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: Logout utente
+      description: |
+        Effettua il logout dell'utente corrente.
+
+        Con JWT stateless, il logout è principalmente client-side:
+        il client elimina il token salvato localmente.
+
+        Questo endpoint è fornito per consistenza API e per
+        future implementazioni di token blacklist.
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout effettuato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '401':
+          description: Non autenticato (token mancante o invalido)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+
+  /api/auth/verify:
+    post:
+      tags:
+        - Authentication
+      summary: Verifica validità token JWT
+      description: |
+        Verifica se il token JWT fornito è valido e non scaduto.
+
+        Utile per:
+        - Controllo validità sessione all'avvio applicazione
+        - Refresh UI dopo risveglio app
+        - Validazione token prima di operazioni critiche
+      operationId: verifyToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyTokenResponse'
+              example:
+                valid: true
+                user:
+                  userId: 999999
+                  username: superuser
+                  groupId: 0
+                  groupLevel: 0
+                  isHardcoded: true
+                expiresAt: 2025-12-04T18:00:00Z
+        '401':
+          description: Token invalido o scaduto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: Token scaduto, effettua nuovamente il login
+              examples:
+                token-expired:
+                  summary: Token scaduto
+                  value:
+                    valid: false
+                    error: Token scaduto, effettua nuovamente il login
+                token-invalid:
+                  summary: Token invalido
+                  value:
+                    valid: false
+                    error: Token invalido
+                token-missing:
+                  summary: Token mancante
+                  value:
+                    valid: false
+                    error: Token mancante
+
+  /api/auth/password-hint:
+    get:
+      tags:
+        - Authentication
+      summary: Ottieni hint password superuser (SOLO SVILUPPO)
+      description: |
+        Restituisce informazioni sulla password dinamica del superuser.
+
+        **ATTENZIONE**: Questo endpoint è disponibile SOLO in sviluppo
+        (NODE_ENV=development).
+
+        In produzione restituisce 404 Not Found.
+      operationId: getPasswordHint
+      responses:
+        '200':
+          description: Hint password restituito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordHintResponse'
+              example:
+                hint: Password superuser per oggi (4/12) promag27
+                formula: promag + (31 - giorno_corrente)
+                example: 31 - 4 = 27 → promag27
+                hardcodedPassword: promag31
+                note: In sviluppo, usa sempre superuser / promag31
+        '404':
+          description: Endpoint non disponibile (produzione)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Endpoint disponibile solo in sviluppo
+
+# ============================================
+# ESEMPI DI UTILIZZO
+# ============================================
+
+# Per utilizzare la sezione auth in swagger.yaml principale:
+#
+# 1. Copia il contenuto di components/securitySchemes
+#    nel tuo swagger.yaml sotto components/securitySchemes
+#
+# 2. Copia il contenuto di components/schemas
+#    nel tuo swagger.yaml sotto components/schemas
+#
+# 3. Copia il contenuto di paths
+#    nel tuo swagger.yaml sotto paths
+#
+# 4. Per proteggere endpoint con JWT, aggiungi:
+#
+# /api/protected-endpoint:
+#   get:
+#     security:
+#       - bearerAuth: []
+#     ...

@@ -1,0 +1,220 @@
+{
+  "agent": "elio-react",
+  "version": "1.0.0",
+  "created": "2025-11-21T22:00:00Z",
+  "last_updated": "2025-11-21T22:15:00Z",
+  "project": {
+    "name": "EjLog React WebApp",
+    "type": "Full-Stack WMS Application",
+    "stack": {
+      "frontend": ["React 18", "TypeScript", "Vite"],
+      "backend": ["Java Spring 4", "Jetty 9.4.1", "Hibernate 5.1.11"],
+      "database": "SQL Server 2019 (PROMAG)"
+    },
+    "status": "active",
+    "phase": "stabilization",
+    "progress": 25
+  },
+  "architectural_decisions": [
+    {
+      "id": "ADR-001",
+      "title": "CORS Configuration for Embedded Jetty",
+      "date": "2025-11-21",
+      "category": "backend",
+      "priority": "high",
+      "status": "implemented",
+      "problem": "React frontend on localhost:3012 unable to connect to Java backend on localhost:7079 due to CORS policy",
+      "context": "Application uses embedded Jetty server configured programmatically, not Spring Boot auto-configuration. Standard Spring MVC CORS configuration doesn't apply to OPTIONS preflight requests",
+      "decision": "Add Spring CorsFilter directly to Jetty ServletContextHandler at container level",
+      "implementation": {
+        "location": "RESTServer.java:86-103",
+        "method": "getServletContextHandler()",
+        "approach": "Register CorsFilter as FilterHolder in ServletContextHandler before DispatcherServlet"
+      },
+      "rationale": [
+        "Jetty processes requests before Spring's DispatcherServlet",
+        "Filter at container level intercepts all requests including OPTIONS",
+        "Allows cross-origin requests from development frontend (localhost:3012)",
+        "Maintains security by whitelisting specific origins"
+      ],
+      "consequences": {
+        "positive": [
+          "All API endpoints now accessible from React frontend",
+          "OPTIONS preflight requests handled correctly",
+          "Development workflow enabled"
+        ],
+        "negative": [
+          "CORS configuration duplicated (also exists in WebApplication.java)",
+          "Need to maintain allowed origins list in code"
+        ]
+      },
+      "alternatives_considered": [
+        {
+          "option": "WebMvcConfigurer.addCorsMappings()",
+          "reason_rejected": "Doesn't apply to embedded Jetty programmatic configuration"
+        },
+        {
+          "option": "@CrossOrigin annotations on controllers",
+          "reason_rejected": "Doesn't handle OPTIONS preflight at Jetty level"
+        }
+      ],
+      "verification": {
+        "test": "curl -H 'Origin: http://localhost:3012' -X OPTIONS http://localhost:7079/EjLogHostVertimag/Lists -i",
+        "expected_headers": [
+          "Access-Control-Allow-Origin: http://localhost:3012",
+          "Access-Control-Allow-Credentials: true",
+          "Vary: Origin"
+        ],
+        "result": "✅ All expected CORS headers present"
+      },
+      "links": {
+        "issue": "connection-error-localhost-3012",
+        "pr": null,
+        "docs": "elio-react.md#decision-1"
+      },
+      "tags": ["cors", "jetty", "spring", "security"]
+    }
+  ],
+  "code_patterns": [
+    {
+      "id": "PATTERN-001",
+      "name": "Jetty CORS Filter Registration",
+      "category": "backend",
+      "language": "Java",
+      "framework": "Spring + Jetty",
+      "use_case": "Enable CORS for embedded Jetty server",
+      "code_snippet": "// Add CORS filter to ServletContextHandler\nCorsConfiguration corsConfig = new CorsConfiguration();\ncorsConfig.setAllowedOrigins(Arrays.asList(\n    \"http://localhost:3010\",\n    \"http://localhost:3000\",\n    \"http://localhost:5173\",\n    \"http://localhost:3012\"\n));\ncorsConfig.setAllowedMethods(Arrays.asList(\"GET\", \"POST\", \"PUT\", \"DELETE\", \"OPTIONS\"));\ncorsConfig.setAllowedHeaders(Arrays.asList(\"*\"));\ncorsConfig.setAllowCredentials(true);\ncorsConfig.setMaxAge(3600L);\n\nUrlBasedCorsConfigurationSource corsSource = new UrlBasedCorsConfigurationSource();\ncorsSource.registerCorsConfiguration(\"/**\", corsConfig);\n\nFilterHolder corsFilter = new FilterHolder(new CorsFilter(corsSource));\ncontextHandler.addFilter(corsFilter, \"/*\", EnumSet.of(DispatcherType.REQUEST));",
+      "benefits": [
+        "Container-level CORS handling",
+        "Catches OPTIONS preflight requests",
+        "Centralized configuration"
+      ],
+      "when_to_use": "When using embedded Jetty with programmatic configuration",
+      "when_not_to_use": "When using Spring Boot auto-configuration",
+      "related_patterns": ["PATTERN-002"],
+      "tags": ["cors", "jetty", "security"]
+    }
+  ],
+  "issues_solutions": [
+    {
+      "id": "ISSUE-001",
+      "title": "React frontend cannot connect to backend - CORS error",
+      "date": "2025-11-21",
+      "category": "integration",
+      "severity": "high",
+      "status": "resolved",
+      "error_message": "Errore nel caricamento degli articoli. Impossibile contattare il server. Verifica la connessione.",
+      "root_cause": "Missing CORS headers in HTTP responses from Jetty server",
+      "symptoms": [
+        "Network errors in browser console",
+        "Failed fetch requests from React",
+        "No Access-Control-Allow-Origin header in response"
+      ],
+      "solution": {
+        "approach": "Add CorsFilter to Jetty ServletContextHandler",
+        "implementation": "See ADR-001",
+        "verification": "CORS headers present in OPTIONS and GET requests"
+      },
+      "lessons_learned": [
+        "Embedded Jetty requires container-level CORS configuration",
+        "Spring MVC CORS config doesn't apply to programmatic Jetty setup",
+        "Always test OPTIONS preflight requests explicitly"
+      ],
+      "prevention": [
+        "Document server configuration patterns",
+        "Include CORS verification in integration tests",
+        "Add CORS headers check to CI/CD pipeline"
+      ],
+      "related": {
+        "adr": "ADR-001",
+        "pattern": "PATTERN-001"
+      },
+      "tags": ["cors", "frontend", "backend", "integration"]
+    }
+  ],
+  "performance_metrics": [
+    {
+      "id": "PERF-001",
+      "date": "2025-11-21",
+      "metric": "API Response Time",
+      "endpoint": "/EjLogHostVertimag/Lists",
+      "method": "GET",
+      "value": "~500ms",
+      "unit": "milliseconds",
+      "status": "baseline",
+      "notes": "Initial measurement before optimization"
+    }
+  ],
+  "technical_debt": [
+    {
+      "id": "DEBT-001",
+      "title": "Duplicate CORS configuration",
+      "category": "code_quality",
+      "priority": "low",
+      "description": "CORS configuration exists in both RESTServer.java and WebApplication.java",
+      "impact": "Maintenance overhead, potential inconsistency",
+      "effort": "low",
+      "proposal": "Remove CORS from WebApplication.java since it's not effective",
+      "status": "identified",
+      "tags": ["cors", "refactoring"]
+    },
+    {
+      "id": "DEBT-002",
+      "title": "Hardcoded API origins",
+      "category": "configuration",
+      "priority": "medium",
+      "description": "Allowed CORS origins are hardcoded in Java code",
+      "impact": "Requires recompilation for origin changes",
+      "effort": "medium",
+      "proposal": "Move to external configuration file (auth-config.properties or environment variables)",
+      "status": "identified",
+      "tags": ["cors", "configuration", "deployment"]
+    }
+  ],
+  "session_context": {
+    "current_task": "CORS configuration and verification",
+    "completed_tasks": [
+      "Identified CORS as root cause",
+      "Implemented CorsFilter in RESTServer.java",
+      "Compiled and restarted server",
+      "Verified CORS headers with curl",
+      "Documented ADR-001"
+    ],
+    "next_tasks": [
+      "Test React frontend connection",
+      "Remove duplicate CORS configuration",
+      "Move origins to configuration file",
+      "Add error boundaries to React app"
+    ],
+    "blockers": [],
+    "notes": "Server running on port 7079 with CORS enabled for localhost:3012"
+  },
+  "knowledge_base": {
+    "best_practices": [
+      {
+        "category": "CORS",
+        "practice": "Always configure CORS at the container level for embedded servers",
+        "rationale": "Ensures all requests including OPTIONS preflight are handled"
+      },
+      {
+        "category": "Testing",
+        "practice": "Test CORS with curl before testing in browser",
+        "rationale": "Curl provides clear header visibility without browser caching"
+      }
+    ],
+    "lessons_learned": [
+      {
+        "topic": "Embedded Jetty + Spring",
+        "lesson": "WebMvcConfigurer CORS config doesn't apply to programmatically configured Jetty",
+        "implication": "Must configure CORS at ServletContextHandler level"
+      }
+    ]
+  },
+  "metadata": {
+    "color": "blue",
+    "emoji": "🔵",
+    "expertise": ["React", "TypeScript", "Java", "Spring", "Architecture"],
+    "tools": ["Context7", "TodoWrite", "Git"],
+    "contact": "elio-react@localhost"
+  }
+}

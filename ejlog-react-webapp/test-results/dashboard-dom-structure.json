@@ -1,0 +1,316 @@
+{
+  "headings": [
+    {
+      "tag": "h1",
+      "text": "EJLOG WMS",
+      "classes": "text-base font-semibold text-gray-900 leading-tight",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h1",
+      "text": "Dashboard Ferretto WMS 🚀",
+      "classes": "text-5xl font-bold bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h2",
+      "text": "Benvenuto, Utente!",
+      "classes": "text-3xl font-bold mb-2 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Azioni Rapide",
+      "classes": "text-xl font-bold mb-4 text-gray-800 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Attività Recenti",
+      "classes": "text-xl font-bold mb-6 flex items-center gap-2 text-green-700",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Performance",
+      "classes": "text-xl font-bold mb-4 text-blue-700 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Distribuzione Giacenza per Magazzino",
+      "classes": "text-xl font-bold mb-6 flex items-center gap-2 text-purple-700",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Magazzini",
+      "classes": "text-xl font-bold mb-4 text-purple-700",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Distribuzione Liste per Tipo",
+      "classes": "text-lg font-bold mb-6 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "Top 8 Categorie per Giacenza",
+      "classes": "text-lg font-bold mb-6 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h3",
+      "text": "📊 Riepilogo Completo Dati Reali",
+      "classes": "text-2xl font-bold mb-6 flex items-center gap-2",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h4",
+      "text": "Articoli e Giacenze",
+      "classes": "font-bold text-lg mb-3 text-green-700",
+      "hasNavLink": false
+    },
+    {
+      "tag": "h4",
+      "text": "Liste e Operazioni",
+      "classes": "font-bold text-lg mb-3 text-red-700",
+      "hasNavLink": false
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "classes": "relative p-2 text-gray-600 hover:text-ferretto-red hover:bg-gray-100 rounded-lg transition-colors",
+      "type": null,
+      "ariaLabel": "Notifiche",
+      "hasIcon": true
+    },
+    {
+      "text": "UtenteVisualizzatore",
+      "classes": "flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "",
+      "classes": "absolute -right-3 top-20 bg-ferretto-red text-white rounded-full p-1.5 hover:bg-ferretto-red-dark transition-colors shadow-lg z-50 focus:outline-none focus:ring-2 focus:ring-ferretto-red-light",
+      "type": null,
+      "ariaLabel": "Comprimi menu",
+      "hasIcon": true
+    },
+    {
+      "text": "Operazioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "RF Operations",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "I/ML Features",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Magazzino",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Spedizioni",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "Configurazione",
+      "classes": "w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": true
+    },
+    {
+      "text": "⏸️ Pausa Auto-Refresh",
+      "classes": "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-ferretto-red text-white hover:bg-red-700 focus:ring-ferretto-red shadow-sm px-4 py-2.5 text-base ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "🔄 Aggiorna Ora",
+      "classes": "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-ferretto-red text-ferretto-red hover:bg-ferretto-red hover:text-white focus:ring-ferretto-red px-4 py-2.5 text-base ",
+      "type": null,
+      "ariaLabel": null,
+      "hasIcon": false
+    },
+    {
+      "text": "",
+      "classes": "tsqd-open-btn",
+      "type": "button",
+      "ariaLabel": "Open Tanstack query devtools",
+      "hasIcon": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Dashboard",
+      "href": "/",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Picking RF",
+      "href": "/rf/picking",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Putaway RF",
+      "href": "/rf/putaway",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Inventario RF",
+      "href": "/rf/inventory",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick Demo",
+      "href": "/voice-pick-demo",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Voice Pick",
+      "href": "/voice-pick",
+      "classes": "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all text-sm group relative text-gray-400 hover:bg-gray-700 hover:text-white",
+      "hasIcon": true
+    },
+    {
+      "text": "Macchine",
+      "href": "/machines",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Allarmi",
+      "href": "/alarms",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Log Eventi",
+      "href": "/event-logs",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Report",
+      "href": "/reports",
+      "classes": "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative text-gray-300 hover:bg-gray-700 hover:text-white ",
+      "hasIcon": true
+    },
+    {
+      "text": "Articoli0",
+      "href": "/items",
+      "classes": "relative bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Giacenze4.151",
+      "href": "/stock",
+      "classes": "relative bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Liste4",
+      "href": "/lists",
+      "classes": "relative bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Picking2",
+      "href": "/lists/picking",
+      "classes": "relative bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Operazioni",
+      "href": "/operations",
+      "classes": "relative bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Magazzini1",
+      "href": "/warehouses",
+      "classes": "relative bg-gradient-to-br from-cyan-500 to-cyan-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "Report",
+      "href": "/reports",
+      "classes": "relative bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    },
+    {
+      "text": "KPI",
+      "href": "/kpi",
+      "classes": "relative bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 cursor-pointer group",
+      "hasIcon": true
+    }
+  ],
+  "cards": [],
+  "stats": [],
+  "lists": [
+    {
+      "type": "ul",
+      "itemCount": 16,
+      "firstItemText": "Dashboard",
+      "classes": "space-y-1"
+    },
+    {
+      "type": "ul",
+      "itemCount": 5,
+      "firstItemText": "Picking RF",
+      "classes": "mt-1 ml-3 space-y-0.5 overflow-hidden border-l border-gray-600 pl-3"
+    },
+    {
+      "type": "ul",
+      "itemCount": 1,
+      "firstItemText": "MAG1 - MAG1",
+      "classes": "recharts-default-legend"
+    },
+    {
+      "type": "ul",
+      "itemCount": 3,
+      "firstItemText": "Picking",
+      "classes": "recharts-default-legend"
+    }
+  ],
+  "inputs": [
+    {
+      "type": "text",
+      "placeholder": "Cerca...",
+      "name": null,
+      "classes": "w-full pl-9 pr-8 py-2 bg-gray-700 text-gray-100 text-sm rounded-lg border border-gray-600 focus:outline-none focus:border-ferretto-red focus:ring-1 focus:ring-ferretto-red transition-colors"
+    }
+  ],
+  "muiComponents": [],
+  "dataTestIds": []
+}
