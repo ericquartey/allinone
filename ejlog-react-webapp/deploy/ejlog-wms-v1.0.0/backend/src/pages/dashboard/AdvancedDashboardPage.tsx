@@ -13,7 +13,7 @@ import ProductsOverviewWidget from '../../features/dashboard/widgets/ProductsOve
 import ItemsAnalyticsWidget from '../../features/dashboard/widgets/ItemsAnalyticsWidget';
 import MovementsRealtimeWidget from '../../features/dashboard/widgets/MovementsRealtimeWidget';
 import LocationsHeatmapWidget from '../../features/dashboard/widgets/LocationsHeatmapWidget';
-import type { WidgetType } from '../../features/dashboard/types/dashboard.types';
+import { WidgetType } from '../../features/dashboard/types/dashboard.types';
 
 /**
  * Advanced Dashboard Page - Pagina principale con widget modulari
@@ -22,8 +22,7 @@ import type { WidgetType } from '../../features/dashboard/types/dashboard.types'
 const AdvancedDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  // const { getEnabledWidgets, config } = useDashboardConfig();
-  const config = { autoRefresh: false, refreshInterval: 60, layout: 'grid' };
+  const { getEnabledWidgets, config } = useDashboardConfig();
 
   // Auto-login come superuser per accesso pubblico
   useEffect(() => {
@@ -31,24 +30,23 @@ const AdvancedDashboardPage: React.FC = () => {
     dispatch(autoLoginSuperuser());
   }, [dispatch]);
 
-  // TEMPORARY: Disabilita widgets per evitare chiamate API che causano redirect
-  // const enabledWidgets = getEnabledWidgets();
-  const enabledWidgets: any[] = [];
+  // Ottieni widget abilitati dalla configurazione
+  const enabledWidgets = getEnabledWidgets();
 
   /**
    * Render widget in base al tipo
    */
   const renderWidget = (widgetId: WidgetType) => {
     switch (widgetId) {
-      case 'kpi_cards' as WidgetType:
+      case WidgetType.KPI_CARDS:
         return <KPICardsWidget />;
-      case 'products_overview' as WidgetType:
+      case WidgetType.PRODUCTS_OVERVIEW:
         return <ProductsOverviewWidget />;
-      case 'items_analytics' as WidgetType:
+      case WidgetType.ITEMS_ANALYTICS:
         return <ItemsAnalyticsWidget />;
-      case 'movements_realtime' as WidgetType:
+      case WidgetType.MOVEMENTS_REALTIME:
         return <MovementsRealtimeWidget />;
-      case 'locations_heatmap' as WidgetType:
+      case WidgetType.LOCATIONS_HEATMAP:
         return <LocationsHeatmapWidget />;
       default:
         return null;
