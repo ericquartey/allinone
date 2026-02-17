@@ -116,7 +116,7 @@ const TestPage = lazy(() => import('./pages/TestPage'));
 
 // UDC Pages - Lazy loaded
 const LoadingUnitsPage = lazy(() => import('./pages/udc/LoadingUnitsPage'));
-const UdcDetailPage = lazy(() => import('./pages/udc/UdcDetailPage'));
+const UdcDetailPage = lazy(() => import('./pages/udc/UDCDetailPage'));
 const CreateUdcPage = lazy(() => import('./pages/udc/CreateUdcPage'));
 const UDCListPage = lazy(() => import('./pages/udc/UDCListPage'));
 const UDCDetailPage = lazy(() => import('./pages/udc/UDCDetailPage'));
@@ -290,7 +290,7 @@ const ListTemplatesPage = lazy(() => import('./pages/templates/ListTemplatesPage
 const ProductImagesPage = lazy(() => import('./pages/images/ProductImagesPage'));
 
 // Logs Pages (NEW)
-const EventLogsPage = lazy(() => import('./pages/logs/EventLogsPage'));
+const EventLogsPage = lazy(() => import('./pages/AuditLogViewer'));
 
 // Drawers Pages
 const DrawerManagement = lazy(() => import('./pages/DrawerManagement'));

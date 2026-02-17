@@ -32,7 +32,7 @@
     "test:db": "node server/test-connection.js",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
@@ -143,4 +143,3 @@
     "yamljs": "^0.3.0"
   }
 }
-
