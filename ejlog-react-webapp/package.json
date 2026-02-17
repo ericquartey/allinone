@@ -19,7 +19,7 @@
     "dev": "concurrently \"npm run dev:backend-3077\" \"npm run dev:backend-9000\" \"npm run dev:frontend-only\" --names \"SQL-3077,TEMPLATES-9000,VITE-3000\" --prefix-colors \"cyan,magenta,green\" --kill-others-on-fail",
     "dev:frontend-only": "vite",
     "dev:backend-3077": "cross-env PORT=3077 node server/api-server.js",
-    "dev:backend-9000": "cd ../../../ejlog-rest-backend && set PORT=9000 && npm run dev",
+    "dev:backend-9000": "if [ -d ../../../ejlog-rest-backend ]; then cd ../../../ejlog-rest-backend && PORT=9000 npm run dev; else echo \"[dev:backend-9000] Backend templates non trovato, avvio solo frontend + API locale\"; fi",
     "dev:api": "node server/api-server.js",
     "dev:api:https": "node server/api-server-https.js",
     "dev:api:legacy": "node server/proxy-api.js",
