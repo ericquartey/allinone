@@ -85,9 +85,9 @@ const AdvancedDashboardPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="ejlog-dashboard-theme">
       {/* Standalone Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/85 shadow-sm backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
@@ -102,10 +102,10 @@ const AdvancedDashboardPage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="mx-auto max-w-7xl px-4 py-6">
         <div className="space-y-6">
           {/* Page Header */}
-          <div className="flex items-center justify-between">
+          <div className="ejlog-dashboard-surface flex items-center justify-between p-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard Avanzata</h1>
               <p className="text-gray-600 mt-1">
@@ -174,7 +174,7 @@ const AdvancedDashboardPage: React.FC = () => {
 
           {/* Footer info */}
           {enabledWidgets.length > 0 && (
-            <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="ejlog-dashboard-surface mt-8 p-4">
               <div className="flex items-center justify-between text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">

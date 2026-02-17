@@ -148,6 +148,21 @@
 
 @layer components {
   /* ========================================================================
+     GLOBAL PAGE SURFACE - Dashboard/Advanced Dashboard visual language
+     ======================================================================== */
+  .ejlog-dashboard-theme {
+    @apply min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 28%),
+      radial-gradient(circle at 100% 0%, rgba(227, 6, 19, 0.08) 0%, transparent 24%);
+    background-attachment: fixed;
+  }
+
+  .ejlog-dashboard-surface {
+    @apply rounded-2xl border border-gray-200/80 bg-white/80 shadow-ferretto-sm backdrop-blur-sm;
+  }
+
+  /* ========================================================================
      BUTTONS - Ferretto Industrial Style
      ======================================================================== */
   .btn {
